@@ -37,12 +37,5 @@ O backend da aeronave foi modelado em contentores independentes. Abaixo está a 
 * `caixa_preta.py`: O gravador *Flight Data Recorder*. Usa o *wildcard* `#` do MQTT para ouvir toda a comunicação e salvar logs em `flight_data_recorder.csv`.
 
 ---
-
-## 🛠️ Como Executar o Sistema
-
-Pré-requisitos: Ter o **Docker Desktop** e o **Python 3.x** instalados. Recomenda-se a instalação das bibliotecas para os nós locais (`pip install paho-mqtt customtkinter requests`).
-
-### Passo 1: Levantar a Infraestrutura (Backend)
-Na raiz do projeto (onde está o ficheiro `docker-compose.yml`), abra o terminal e execute:
-```bash
-docker compose up --build -d
+## 🔬 Modelagem Matemática
+A verificação formal deste protótipo, comprovando o determinismo da rede (livre de impasses/deadlocks) e o isolamento de falhas bizantinas, foi modelada através de Redes de Petri Hierárquicas (simuladas em software PIPE) e analisada em termos de desempenho estrito usando o simulador OMNeT++. (Mais detalhes disponíveis no artigo científico do projeto).
