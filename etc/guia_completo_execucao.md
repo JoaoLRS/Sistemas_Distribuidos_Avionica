@@ -21,15 +21,23 @@ Antes de rodar o projeto, a máquina precisa ter:
 
 ### 1.1 Instalação no Windows (Recomendado via Chocolatey)
 
-Se você utiliza o Windows, o Chocolatey facilita a instalação. Abra o **PowerShell como administrador** e rode:
+Se você utiliza o Windows, o [Chocolatey](https://chocolatey.org/) facilita muito a instalação de todos os requisitos de uma vez.
 
+**Passo 1: Instalar o próprio Chocolatey (se você ainda não tiver)**
+Abra o **PowerShell como Administrador** e rode o comando abaixo:
 ```powershell
-# Instalar o Chocolatey (se não tiver)
 Set-ExecutionPolicy Bypass -Scope Process -Force
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
 iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+```
+Depois que o comando terminar, feche a tela e abra o **PowerShell como Administrador novamente**. Para validar se o Choco instalou corretamente, digite:
+```powershell
+choco --version
+```
 
-# Após a instalação, feche e abra o PowerShell como administrador novamente e instale:
+**Passo 2: Utilizar o Choco para instalar os pré-requisitos do projeto**
+Com o Choco funcionando, rode os seguintes comandos no terminal para que ele instale o Git, Docker, Java, Node e Python:
+```powershell
 choco install git -y
 choco install docker-desktop -y
 choco install openjdk --version=25.0.1 -y
@@ -37,7 +45,7 @@ choco install nodejs-lts -y
 choco install python -y
 ```
 
-Após instalar, reinicie o terminal. Valide as instalações executando:
+Após instalar tudo, feche o PowerShell e abra o terminal de sua preferência. Valide as instalações executando:
 ```bash
 git --version
 docker --version
