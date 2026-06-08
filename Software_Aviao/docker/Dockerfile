@@ -4,8 +4,8 @@ FROM python:3.11-slim
 # Define a pasta de trabalho dentro do contentor
 WORKDIR /app
 
-# Instala as bibliotecas necessárias (MQTT e Requests para a API)
-RUN pip install paho-mqtt requests
+# Permite que os modulos Python publiquem e consumam Kafka
+RUN pip install paho-mqtt requests kafka-python
 
 # Copia os módulos Python para dentro do contentor
 COPY *.py ./

@@ -34,6 +34,49 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
 
+  kafka-topic-init:
+    build:
+      context: ./Software_Aviao
+      dockerfile: docker/Dockerfile
+    container_name: avionica_kafka_topic_init
+    command: python kafka_create_topics.py
+    environment:
+      PYTHONUNBUFFERED: "1"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - kafka
+
+  mqtt-kafka-bridge:
+    build:
+      context: ./Software_Aviao
+      dockerfile: docker/Dockerfile
+    container_name: avionica_mqtt_kafka_bridge
+    command: python mqtt_kafka_bridge.py
+    environment:
+      PYTHONUNBUFFERED: "1"
+      MQTT_BROKER: mqtt-broker
+      MQTT_PORT: 1883
+      MQTT_TOPIC_FILTER: avionica/#
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - mqtt-broker
+      - kafka
+      - kafka-topic-init
+
+  kafka-telemetry-consumer:
+    build:
+      context: ./Software_Aviao
+      dockerfile: docker/Dockerfile
+    container_name: avionica_kafka_telemetry_consumer
+    command: python kafka_telemetry_consumer.py
+    environment:
+      PYTHONUNBUFFERED: "1"
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      - kafka
+      - kafka-topic-init
+
+
   mqtt-broker:
     image: eclipse-mosquitto:2
     container_name: avionica_mqtt_broker
