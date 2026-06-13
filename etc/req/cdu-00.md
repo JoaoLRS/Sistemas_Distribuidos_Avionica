@@ -1,15 +1,15 @@
 # CDU-01: Visão Geral do Painel Inicial (Glass Cockpit / Dashboard Principal)
 
 ## 1. Descrição
-Este caso de uso descreve a inicialização e o comportamento do **Painel Inicial (Dashboard Principal)** da aplicação web (Frontend Vue.js). O painel atua como o *Glass Cockpit* da aeronave, agregando de forma visual e consolidada os dados provenientes de todos os microsserviços distribuídos (Sensores WAIC, Radar, FMS, Consenso de Motores) em um único ecrã de consciência situacional.
+O painel atua como o *Glass Cockpit* da aeronave, agregando de forma visual e consolidada os dados provenientes de todos os microsserviços distribuídos (Sensores WAIC, Radar, FMS, Consenso de Motores) em um único ecrã de consciência situacional.
 
 ## 2. Atores
-- **Utilizador:** Piloto, Copiloto ou Mecânico de Voo responsável pela monitorização da aeronave.
+- **Utilizador:** Piloto, Copiloto, Instrutor ou Mecânico de Voo responsável pela monitorização da aeronave.
 - **Backend Spring Boot:** Fornece os dados consolidados via REST/WebSockets.
 - **Broker de Mensagens (Kafka):** Barramento por onde transitam os dados em tempo real.
 
 ## 3. O Que Deve Conter no Painel Inicial?
-Para garantir a segurança e a operação correta da aeronave, o painel inicial deve ser dividido em quadrantes lógicos (inspirados nos sistemas PFD e EICAS da aviação real):
+O painel inicial deve ser dividido em quadrantes lógicos (inspirados nos sistemas PFD e EICAS da aviação real (sonhar não custa nada)):
 
 * **Primary Flight Display (PFD - Indicadores de Voo):**
     * **Velocidade (Airspeed):** Exibida em Mach ou Nós (Knots).
