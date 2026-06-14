@@ -23,7 +23,9 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+
 
 // Responsavel por escutar os sensores dos arquivos python
 @Service
@@ -39,15 +41,18 @@ public class AircraftTelemetryService implements MqttCallbackExtended {
     //Dicionario e fila
     private final Map<String, AircraftMessage> latestByTopic = new ConcurrentHashMap<>();
     private final Deque<AircraftMessage> recentMessages = new ArrayDeque<>();
+    private final JdbcTemplate jdbc;
 
     private MqttClient client;
 
     public AircraftTelemetryService(
         @Value("${app.mqtt.broker-url}") String brokerUrl,
-        @Value("${app.mqtt.topic-filter}") String topicFilter
+        @Value("${app.mqtt.topic-filter}") String topicFilter,
+        JdbcTemplate jdbc
     ) {
         this.brokerUrl = brokerUrl;
         this.topicFilter = topicFilter;
+        this.jdbc = jdbc;
     }
 
     @PostConstruct
@@ -116,6 +121,7 @@ public class AircraftTelemetryService implements MqttCallbackExtended {
 
     @Override
     public void messageArrived(String topic, MqttMessage mqttMessage) {
+        String rawPayload = new String(mqttMessage.getPayload(), StandardCharsets.UTF_8);
         Map<String, Object> payload = parsePayload(mqttMessage);
         AircraftMessage message = new AircraftMessage(topic, Instant.now(), payload);
 
@@ -123,9 +129,18 @@ public class AircraftTelemetryService implements MqttCallbackExtended {
 
         synchronized (recentMessages) {
             recentMessages.addLast(message);
-            while (recentMessages.size() > 30) {
+            while (recentMessages.size() > 300) {
                 recentMessages.removeFirst();
             }
+        }
+
+        try {
+            jdbc.update(
+                "INSERT INTO mensagens_barramento (topico, payload_json, tamanho_bytes) VALUES (?, CAST(? AS jsonb), ?)",
+                topic, rawPayload, mqttMessage.getPayload().length
+            );
+        } catch (Exception e) {
+            logger.warn("Falha ao persistir telemetria no banco: {}", e.getMessage());
         }
     }
 

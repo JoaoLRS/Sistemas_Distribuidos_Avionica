@@ -6,6 +6,9 @@ spring:
     name: backend-gateway
   main:
     banner-mode: "off"
+  sql:
+    init:
+      mode: always
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/avionica}
     username: ${SPRING_DATASOURCE_USERNAME:avionica}

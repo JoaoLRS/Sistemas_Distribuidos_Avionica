@@ -194,4 +194,3 @@ COMMENT ON TABLE alertas               IS 'Alertas e falhas do sistema distribu�
 COMMENT ON TABLE eventos_anti_ice      IS 'Eventos do sistema autônomo anti-gelo (tópico: avionica/sistemas/anti_ice)';
 COMMENT ON TABLE mensagens_barramento  IS 'Log histórico de todas as mensagens do barramento MQTT aviônico';
 COMMENT ON TABLE aeronaves             IS 'Aeronaves cadastradas no ecossistema de simulação pela Torre de Comando';
-
