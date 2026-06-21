@@ -95,6 +95,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-avionica}
       SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-avionica_dev}
       KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS:-kafka:9092}
+      LAMPORT_GROUP_ID: lamport-consumer
       MQTT_BROKER_URL: tcp://mqtt-broker:1883
     ports:
       - "8080:8080"
@@ -158,10 +159,16 @@ services:
     environment:
       PYTHONUNBUFFERED: "1"
       PYTHONWARNINGS: ignore::DeprecationWarning
-      MQTT_BROKER: ${MQTT_BROKER:-mqtt-broker}
-      MQTT_PORT: ${MQTT_PORT:-1883}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      BRAKE_NODE_ID: 1
+      MUTEX_PEERS: 2,3
+      BRAKE_TELEMETRY_TOPIC: avionica.telemetry.brakes
+      BRAKE_MUTEX_REQUEST_TOPIC: avionica.mutex.brakes.request
+      BRAKE_MUTEX_GRANT_TOPIC: avionica.mutex.brakes.grant
+      BRAKE_MUTEX_RELEASE_TOPIC: avionica.mutex.brakes.release
     depends_on:
-      - mqtt-broker
+      - kafka
+      - kafka-topic-init
 
   radar:
     build:
