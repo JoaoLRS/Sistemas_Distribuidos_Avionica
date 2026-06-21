@@ -2,19 +2,21 @@ import json
 import os
 import time
 from kafka import KafkaConsumer
-from kafka.errors import NoBrokersAvailable
 
 KAFKA_BOOTSTRAP = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 
 TOPICS = [
     "avionica.telemetry.flight",
-    "avionica.telemetry.brake",
+    "avionica.telemetry.brakes",
     "avionica.telemetry.radar",
     "avionica.route.calculated",
     "avionica.navigation",
     "avionica.telemetry.waic",
     "avionica.automation.anti_ice",
-    "avionica.system.events"
+    "avionica.system.events",
+    "avionica.mutex.brakes.request",
+    "avionica.mutex.brakes.grant",
+    "avionica.mutex.brakes.release",
 ]
 
 def main():
@@ -29,7 +31,7 @@ def main():
                 group_id="kafka-telemetry-debug"
             )
             break
-        except NoBrokersAvailable:
+        except Exception as erro:
             print("[kafka-telemetry-consumer] Kafka ainda nao esta pronto. Tentando em 5s")
             time.sleep(5)
 

@@ -194,3 +194,25 @@ COMMENT ON TABLE alertas               IS 'Alertas e falhas do sistema distribu�
 COMMENT ON TABLE eventos_anti_ice      IS 'Eventos do sistema autônomo anti-gelo (tópico: avionica/sistemas/anti_ice)';
 COMMENT ON TABLE mensagens_barramento  IS 'Log histórico de todas as mensagens do barramento MQTT aviônico';
 COMMENT ON TABLE aeronaves             IS 'Aeronaves cadastradas no ecossistema de simulação pela Torre de Comando';
+
+-- ============================================================
+-- 11. TELEMETRIA ORDENADA POR RELÓGIO LÓGICO DE LAMPORT
+--     Responsável: Nickolas / Nickollas
+--     Consumidor Kafka: avionica.telemetry.*
+-- ============================================================
+CREATE TABLE IF NOT EXISTS telemetria_ordenada (
+    id              BIGSERIAL    PRIMARY KEY,
+    recebido_em     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+    topico_kafka    VARCHAR(200) NOT NULL,
+    sensor_origem   VARCHAR(100),
+    logical_clock   BIGINT       NOT NULL,
+    payload_json    JSONB        NOT NULL,
+    callsign        VARCHAR(20)
+);
+
+CREATE INDEX IF NOT EXISTS idx_telemetria_lamport ON telemetria_ordenada (logical_clock ASC);
+CREATE INDEX IF NOT EXISTS idx_telemetria_ord_tempo ON telemetria_ordenada (recebido_em DESC);
+
+COMMENT ON TABLE telemetria_ordenada IS
+    'Telemetria persistida em ordem causal usando Relógio Lógico de Lamport (Nickolas / Nickollas)';
+

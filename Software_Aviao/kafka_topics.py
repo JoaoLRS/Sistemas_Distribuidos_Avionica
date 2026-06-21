@@ -1,10 +1,10 @@
 MQTT_TO_KAFKA = {
-        "avionica/sensores/voo": {
+    "avionica/sensores/voo": {
         "topic": "avionica.telemetry.flight",
         "type": "TELEMETRY_FLIGHT"
     },
     "avionica/sensores/freios": {
-        "topic": "avionica.telemetry.brake",
+        "topic": "avionica.telemetry.brakes",
         "type": "TELEMETRY_BRAKE"
     },
     "avionica/radar": {
@@ -31,7 +31,12 @@ MQTT_TO_KAFKA = {
         "topic": "avionica.system.events",
         "type": "SYSTEM_EVENT"
     }
-
 }
 
-KAFKA_TOPICS = [config["topic"] for config in MQTT_TO_KAFKA.values()]
+RICART_TOPICS = [
+    "avionica.mutex.brakes.request",
+    "avionica.mutex.brakes.grant",
+    "avionica.mutex.brakes.release",
+]
+
+KAFKA_TOPICS = sorted(set([config["topic"] for config in MQTT_TO_KAFKA.values()] + RICART_TOPICS))
