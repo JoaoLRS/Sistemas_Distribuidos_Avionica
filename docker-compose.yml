@@ -227,6 +227,23 @@ services:
     depends_on:
       - mqtt-broker
 
+  db-visualizer:
+    build:
+      context: ./db-visualizer
+    container_name: avionica_db_visualizer
+    ports:
+      - "8081:8081"
+    environment:
+      PORT: 8081
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: avionica
+      DB_USER: avionica
+      DB_PASS: avionica_dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+
 volumes:
   postgres_data:
   frontend_node_modules:

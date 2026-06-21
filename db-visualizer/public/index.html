@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Avionics DB Audit Engine</title>
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Vue 3 via CDN -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <style>
+    :root {
+      --bg-app: #06090e;
+      --bg-panel: rgba(18, 22, 30, 0.7);
+      --border-glass: rgba(255, 255, 255, 0.08);
+      --border-focus: rgba(0, 210, 255, 0.5);
+      --text-primary: #f0f4f8;
+      --text-secondary: #a1b0cb;
+      
+      --neon-green: #00ff66;
+      --neon-cyan: #00d2ff;
+      --neon-amber: #ffb300;
+      --neon-red: #ff3344;
+      --neon-purple: #bf5af2;
+    }
+
+    body {
+      background: var(--bg-app);
+      color: var(--text-primary);
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      overflow-x: hidden;
+    }
+
+    .app-shell {
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 0%, #0c182c 0%, #05070a 100%);
+    }
+
+    .mono, code, pre {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .navbar {
+      background: rgba(8, 10, 15, 0.85) !important;
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-glass) !important;
+      padding: 1rem 1.5rem;
+    }
+
+    .brand-text {
+      background: linear-gradient(135deg, #00d2ff 0%, #bf5af2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border-glass);
+      border-radius: 14px;
+      padding: 1.75rem;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    }
+
+    .panel:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .table-card {
+      background: rgba(16, 20, 28, 0.55);
+      border: 1px solid var(--border-glass);
+      border-radius: 12px;
+      padding: 1.5rem;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .table-card:hover {
+      border-color: rgba(0, 210, 255, 0.35);
+      box-shadow: 0 8px 30px rgba(0, 210, 255, 0.12);
+      transform: translateY(-3px);
+    }
+
+    .metric-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 1.25rem;
+      transition: all 0.2s ease;
+    }
+
+    .metric-card:hover {
+      border-color: rgba(255, 255, 255, 0.12);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .form-control, .form-select {
+      background: rgba(8, 10, 15, 0.6) !important;
+      border: 1px solid var(--border-glass) !important;
+      color: var(--text-primary) !important;
+      border-radius: 8px;
+      padding: 0.65rem 0.9rem;
+      transition: all 0.2s ease;
+      font-size: 0.85rem;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--border-focus) !important;
+      box-shadow: 0 0 10px rgba(0, 210, 255, 0.25) !important;
+      outline: none;
+    }
+
+    /* Glow utilities for numbers - Forced using important to override bootstrap table rules */
+    .glow-cyan {
+      color: var(--neon-cyan) !important;
+      text-shadow: 0 0 10px rgba(0, 210, 255, 0.45) !important;
+    }
+    .glow-red {
+      color: var(--neon-red) !important;
+      text-shadow: 0 0 10px rgba(255, 51, 68, 0.45) !important;
+    }
+    .glow-amber {
+      color: var(--neon-amber) !important;
+      text-shadow: 0 0 10px rgba(255, 179, 0, 0.45) !important;
+    }
+
+    .btn-audit {
+      background: linear-gradient(135deg, rgba(0, 210, 255, 0.08) 0%, rgba(0, 118, 255, 0.08) 100%);
+      border: 1px solid rgba(0, 210, 255, 0.35);
+      color: var(--neon-cyan);
+      font-weight: 600;
+      border-radius: 8px;
+      padding: 0.5rem 1rem;
+      font-size: 0.8rem;
+      transition: all 0.25s ease;
+    }
+
+    .btn-audit:hover {
+      background: linear-gradient(135deg, #00d2ff 0%, #0076ff 100%);
+      border-color: #00d2ff;
+      color: #fff;
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.35);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #00b8ff 0%, #0076ff 100%);
+      border: none;
+      border-radius: 8px;
+      padding: 0.65rem 1.25rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.25s ease;
+    }
+
+    .btn-primary:hover {
+      background: linear-gradient(135deg, #00c6ff 0%, #0088ff 100%);
+      box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+    }
+
+    .btn-outline-danger {
+      border-color: rgba(255, 51, 68, 0.4);
+      color: var(--neon-red);
+      background: transparent;
+      border-radius: 8px;
+      padding: 0.6rem 1.2rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-outline-danger:hover {
+      background: rgba(255, 51, 68, 0.12);
+      border-color: var(--neon-red);
+      color: var(--neon-red);
+    }
+
+    .btn-outline-secondary {
+      border-color: var(--border-glass);
+      color: var(--text-secondary);
+      background: transparent;
+      border-radius: 8px;
+      padding: 0.55rem 1.1rem;
+      font-size: 0.85rem;
+      font-weight: 550;
+      transition: all 0.2s ease;
+    }
+
+    .btn-outline-secondary:hover {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--text-primary);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    .badge-status {
+      font-size: 0.75rem;
+      padding: 0.45em 0.85em;
+      border-radius: 6px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .badge-status.green {
+      background: rgba(0, 255, 102, 0.12);
+      color: var(--neon-green);
+      border: 1px solid rgba(0, 255, 102, 0.25);
+    }
+
+    .badge-status.purple {
+      background: rgba(191, 90, 242, 0.12);
+      color: var(--neon-purple);
+      border: 1px solid rgba(191, 90, 242, 0.25);
+    }
+
+    .table {
+      --bs-table-bg: transparent;
+      --bs-table-hover-bg: rgba(255, 255, 255, 0.02);
+      color: var(--text-primary);
+      border-color: var(--border-glass);
+    }
+
+    .table th {
+      color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.72rem;
+      letter-spacing: 0.06em;
+      border-bottom: 2px solid var(--border-glass);
+      padding: 1.1rem 1rem;
+    }
+
+    .table td {
+      padding: 1.1rem 1rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .payload-cell {
+      max-height: 120px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .sensor-badge {
+      background: rgba(0, 210, 255, 0.08);
+      color: var(--neon-cyan);
+      border: 1px solid rgba(0, 210, 255, 0.2);
+      border-radius: 6px;
+      padding: 0.35rem 0.65rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .audit-badge {
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: 6px;
+      padding: 0.4rem 0.75rem;
+      letter-spacing: 0.02em;
+    }
+  </style>
+</head>
+<body class="app-shell pb-5">
+  <div id="app">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg border-bottom mb-5">
+      <div class="container-fluid px-4 d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center gap-2">
+          <span class="navbar-brand brand-text mono m-0">AVIONICA_DB_AUDIT</span>
+          <span class="text-secondary small ms-2 mono d-none d-md-inline">| Audit Engine v2.0</span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+          <span class="badge-status green d-flex align-items-center gap-2">
+            <span class="d-inline-block rounded-circle bg-success" style="width: 6px; height: 6px; box-shadow: 0 0 8px var(--neon-green)"></span>
+            POSTGRESQL CONECTADO
+          </span>
+          <button class="btn btn-sm btn-outline-secondary" type="button" @click="fetchTables(); fetchCausalityReport();">
+            🔄 Sincronizar
+          </button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="container-fluid px-5">
+      <div v-if="notification" :class="`alert ${notification.type === 'error' ? 'alert-danger bg-danger bg-opacity-25 text-white' : 'alert-success bg-success bg-opacity-25 text-white'} border-0 shadow-lg alert-dismissible fade show mb-4`" role="alert">
+        {{ notification.text }}
+        <button type="button" class="btn-close btn-close-white" @click="notification = null"></button>
+      </div>
+
+      <!-- Relatório de Causalidade Lamport -->
+      <section v-if="causalityReport" class="panel mb-5">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+          <div>
+            <h2 class="h5 text-white mb-1">🛡️ Auditoria de Relógios Lógicos (Lamport Consistency)</h2>
+            <p class="text-secondary small m-0" style="color: var(--text-secondary) !important;">Verificação heurística de anomalias causais e perda de mensagens de sensores</p>
+          </div>
+          <span :class="`badge-status ${causalityReport.metricasGlobais.statusIntegridade === 'CONCORDANTE' ? 'green' : 'purple'}`">
+            SISTEMA: {{ causalityReport.metricasGlobais.statusIntegridade }}
+          </span>
+        </div>
+
+        <div class="row g-4 mb-4">
+          <div class="col-12 col-md-4">
+            <div class="metric-card">
+              <div class="text-secondary small font-medium mb-1" style="color: var(--text-secondary) !important;">Sensores Auditados</div>
+              <div class="h3 font-bold text-white mt-1 mono m-0">{{ causalityReport.metricasGlobais.totalSensoresAuditados }}</div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="metric-card">
+              <div class="text-secondary small font-medium mb-1" style="color: var(--text-secondary) !important;">Violações Causais (Desvio de Tempo)</div>
+              <div class="h3 font-bold mt-1 mono m-0" :class="causalityReport.metricasGlobais.totalAnomaliasCausais > 0 ? 'glow-red' : 'text-white'">
+                {{ causalityReport.metricasGlobais.totalAnomaliasCausais }}
+              </div>
+            </div>
+          </div>
+          <div class="col-12 col-md-4">
+            <div class="metric-card">
+              <div class="text-secondary small font-medium mb-1" style="color: var(--text-secondary) !important;">Mensagens Perdidas (Gaps na Rede)</div>
+              <div class="h3 font-bold mt-1 mono m-0" :class="causalityReport.metricasGlobais.totalMensagensPerdidas > 0 ? 'glow-amber' : 'text-white'">
+                {{ causalityReport.metricasGlobais.totalMensagensPerdidas }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table align-middle table-hover text-start">
+            <thead>
+              <tr>
+                <th style="width: 25%;">Sensor Origem</th>
+                <th class="text-center" style="width: 20%;">Total Mensagens</th>
+                <th class="text-center" style="width: 20%;">Último Clock</th>
+                <th class="text-center" style="width: 17%;">Violações</th>
+                <th class="text-center" style="width: 18%;">Perdas (Gaps)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="sensor in causalityReport.sensores" :key="sensor.sensor">
+                <td>
+                  <span class="sensor-badge mono">{{ sensor.sensor }}</span>
+                </td>
+                <td class="text-center mono text-light font-bold" style="font-size: 0.9rem;">
+                  {{ sensor.totalMensagens }}
+                </td>
+                <td class="text-center">
+                  <span class="audit-badge badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 mono glow-cyan">
+                    {{ sensor.ultimoClock }}
+                  </span>
+                </td>
+                <td class="text-center">
+                  <span v-if="sensor.anomaliasCausais > 0" class="audit-badge badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 mono glow-red">
+                    {{ sensor.anomaliasCausais }}
+                  </span>
+                  <span v-else class="text-secondary mono font-semibold" style="color: var(--text-secondary) !important; font-size: 0.85rem;">0</span>
+                </td>
+                <td class="text-center">
+                  <span v-if="sensor.mensagensPerdidas > 0" class="audit-badge badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 mono glow-amber">
+                    {{ sensor.mensagensPerdidas }}
+                  </span>
+                  <span v-else class="text-secondary mono font-semibold" style="color: var(--text-secondary) !important; font-size: 0.85rem;">0</span>
+                </td>
+              </tr>
+              <tr v-if="causalityReport.sensores.length === 0">
+                <td colspan="5" class="text-center text-secondary small py-4">Aguardando telemetria Lamport para auditoria...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Tela 1: Grade de Tabelas -->
+      <div v-if="!selectedTable">
+        <h2 class="h5 mb-4 text-white">📊 Tabelas Persistidas no Banco de Dados</h2>
+        <div class="row g-4">
+          <div v-for="table in tables" :key="table.id" class="col-12 col-md-6 col-lg-4">
+            <div class="table-card h-100 d-flex flex-column justify-content-between">
+              <div>
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <h3 class="h6 font-bold text-white mb-0">{{ table.displayName }}</h3>
+                  <code class="text-secondary font-mono small" style="color: var(--neon-cyan) !important;">{{ table.id }}</code>
+                </div>
+                <div class="d-flex align-items-baseline gap-2 mb-4">
+                  <span class="h3 font-bold text-white mono m-0">{{ table.rowCount }}</span>
+                  <span class="text-secondary small" style="color: var(--text-secondary) !important;">registros</span>
+                </div>
+              </div>
+              <button @click="selectTable(table.id)" class="btn btn-audit btn-sm w-100">
+                Abrir Auditoria &rarr;
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tela 2: Detalhes de Registro & Auditoria Individual (Voltar Visível) -->
+      <div v-else class="panel">
+        <!-- Botão Voltar Proeminente -->
+        <div class="mb-4">
+          <button @click="backToMain" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+            <span>&larr;</span> Voltar para as Tabelas
+          </button>
+        </div>
+
+        <!-- Topbar Detalhada -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-4 pb-3 border-bottom border-secondary border-opacity-25">
+          <div>
+            <h2 class="h5 text-white m-0">
+              Auditando Tabela: <span class="text-info font-bold" style="color: var(--neon-cyan) !important;">{{ activeTableMetadata?.displayName }}</span>
+            </h2>
+            <p class="text-secondary small m-0" style="color: var(--text-secondary) !important;">Visualizando os dados brutos e filtros de consulta</p>
+          </div>
+          <button @click="confirmTruncate" class="btn btn-outline-danger btn-sm">
+            🗑️ Limpar Tabela (Truncate)
+          </button>
+        </div>
+
+        <!-- Filtros Rápidos -->
+        <div class="row g-3 mb-4 bg-dark bg-opacity-50 p-4 rounded border border-secondary border-opacity-25">
+          <div class="col-12 col-md-3">
+            <label class="form-label text-secondary small font-medium" style="color: var(--text-secondary) !important;">Busca Textual</label>
+            <input type="text" v-model="filters.search" placeholder="Buscar em qualquer coluna..." class="form-control" />
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <label class="form-label text-secondary small font-medium" style="color: var(--text-secondary) !important;">Data Inicial</label>
+            <input type="datetime-local" v-model="filters.startDate" class="form-control" />
+          </div>
+          <div class="col-12 col-sm-6 col-md-3">
+            <label class="form-label text-secondary small font-medium" style="color: var(--text-secondary) !important;">Data Final</label>
+            <input type="datetime-local" v-model="filters.endDate" class="form-control" />
+          </div>
+          <div class="col-12 col-md-3 d-flex gap-2 align-items-end">
+            <div class="flex-grow-1">
+              <label class="form-label text-secondary small font-medium" style="color: var(--text-secondary) !important;">Registros</label>
+              <select v-model="filters.limit" class="form-select">
+                <option :value="50">Últimos 50</option>
+                <option :value="100">Últimos 100</option>
+                <option :value="500">Últimos 500</option>
+              </select>
+            </div>
+            <button @click="fetchTableData" class="btn btn-primary">
+              Filtrar
+            </button>
+          </div>
+        </div>
+
+        <!-- Tabela de Registros -->
+        <div v-if="loading" class="text-center py-5">
+          <div class="spinner-border text-info mb-2" role="status"></div>
+          <p class="text-secondary small">Consultando dados no PostgreSQL...</p>
+        </div>
+
+        <div v-else-if="tableData.rows.length === 0" class="text-center py-5 bg-dark bg-opacity-25 border border-secondary border-opacity-25 rounded">
+          <span class="h4">📭</span>
+          <h4 class="h6 mt-3 text-white">Nenhum registro encontrado</h4>
+          <p class="text-secondary small m-0" style="color: var(--text-secondary) !important;">Ajuste os filtros ou execute novas simulações de voo.</p>
+        </div>
+
+        <div v-else class="table-responsive rounded border border-secondary border-opacity-25 bg-dark bg-opacity-10">
+          <table class="table table-hover align-middle mb-0">
+            <thead>
+              <tr class="bg-dark bg-opacity-50">
+                <th v-for="col in tableData.columns" :key="col" class="mono font-bold">{{ col }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(row, idx) in tableData.rows" :key="idx">
+                <td v-for="col in tableData.columns" :key="col" class="mono text-white small">
+                  <div v-if="isJson(row[col])" class="payload-cell text-success">{{ formatJson(row[col]) }}</div>
+                  <span v-else-if="col === 'recebido_em' || col === 'registrado_em' || col === 'ultima_atualizacao' || col === 'resolvido_em'" class="text-info text-nowrap" style="color: var(--neon-cyan) !important;">
+                    {{ formatDate(row[col]) }}
+                  </span>
+                  <span v-else>{{ row[col] }}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, onMounted } = Vue;
+
+    createApp({
+      setup() {
+        const tables = ref([]);
+        const selectedTable = ref(null);
+        const tableData = ref({ columns: [], rows: [] });
+        const loading = ref(false);
+        const notification = ref(null);
+        const causalityReport = ref(null);
+
+        const filters = ref({
+          search: '',
+          limit: 50,
+          startDate: '',
+          endDate: ''
+        });
+
+        const tableMap = {
+          telemetria_voo: { displayName: 'Telemetria de Voo' },
+          telemetria_freios: { displayName: 'Telemetria de Freios' },
+          telemetria_radar: { displayName: 'Telemetria de Radar' },
+          telemetria_waic: { displayName: 'Telemetria WAIC' },
+          telemetria_navegacao: { displayName: 'Computador de Navegação' },
+          rotas_fms: { displayName: 'Rotas do FMS' },
+          alertas: { displayName: 'Alertas e Falhas' },
+          eventos_anti_ice: { displayName: 'Eventos de Anti-Ice' },
+          mensagens_barramento: { displayName: 'Log do Barramento MQTT' },
+          aeronaves: { displayName: 'Aeronaves Cadastradas' },
+          telemetria_ordenada: { displayName: 'Telemetria Ordenada (Lamport)' }
+        };
+
+        const activeTableMetadata = computed(() => {
+          return selectedTable.value ? { id: selectedTable.value, ...tableMap[selectedTable.value] } : null;
+        });
+
+        const notify = (text, type = 'success') => {
+          notification.value = { text, type };
+          setTimeout(() => {
+            notification.value = null;
+          }, 5000);
+        };
+
+        const fetchTables = async () => {
+          try {
+            const res = await fetch('/api/tables');
+            const data = await res.json();
+            if (data.success) {
+              tables.value = data.tables;
+            } else {
+              notify(data.error || 'Erro ao carregar tabelas', 'error');
+            }
+          } catch (err) {
+            notify('Falha ao se conectar com a API', 'error');
+          }
+        };
+
+        const fetchCausalityReport = async () => {
+          try {
+            const res = await fetch('/api/audit/causality');
+            const data = await res.json();
+            if (data.success) {
+              causalityReport.value = data;
+            }
+          } catch (err) {
+            console.error('Falha ao auditar relógio de Lamport:', err);
+          }
+        };
+
+        const selectTable = (tableName) => {
+          selectedTable.value = tableName;
+          filters.value = {
+            search: '',
+            limit: 50,
+            startDate: '',
+            endDate: ''
+          };
+          fetchTableData();
+        };
+
+        const fetchTableData = async () => {
+          if (!selectedTable.value) return;
+          loading.value = true;
+          try {
+            const queryParams = new URLSearchParams({
+              limit: filters.value.limit,
+              search: filters.value.search,
+              startDate: filters.value.startDate,
+              endDate: filters.value.endDate
+            });
+
+            const res = await fetch(`/api/tables/${selectedTable.value}?${queryParams.toString()}`);
+            const data = await res.json();
+            if (data.success) {
+              tableData.value = {
+                columns: data.columns,
+                rows: data.rows
+              };
+            } else {
+              notify(data.error || 'Erro ao obter dados da tabela', 'error');
+            }
+          } catch (err) {
+            notify('Erro ao consultar dados da tabela', 'error');
+          } finally {
+            loading.value = false;
+          }
+        };
+
+        const confirmTruncate = async () => {
+          const confirm = window.confirm(`ATENÇÃO! Você tem certeza que deseja LIMPAR TODOS OS DADOS da tabela "${selectedTable.value}"?\nEssa ação não pode ser desfeita.`);
+          if (!confirm) return;
+
+          try {
+            const res = await fetch(`/api/tables/${selectedTable.value}/truncate`, { method: 'POST' });
+            const data = await res.json();
+            if (data.success) {
+              notify(`A tabela ${selectedTable.value} foi zerada com sucesso!`);
+              fetchTableData();
+              fetchTables();
+              fetchCausalityReport();
+            } else {
+              notify(data.error || 'Erro ao limpar tabela', 'error');
+            }
+          } catch (err) {
+            notify('Falha ao limpar tabela', 'error');
+          }
+        };
+
+        const backToMain = () => {
+          selectedTable.value = null;
+          fetchTables();
+          fetchCausalityReport();
+        };
+
+        const isJson = (val) => {
+          return typeof val === 'object' && val !== null;
+        };
+
+        const formatJson = (val) => {
+          return JSON.stringify(val, null, 2);
+        };
+
+        const formatDate = (val) => {
+          if (!val) return '';
+          return new Date(val).toLocaleString('pt-BR');
+        };
+
+        onMounted(() => {
+          fetchTables();
+          fetchCausalityReport();
+        });
+
+        return {
+          tables,
+          selectedTable,
+          tableData,
+          loading,
+          filters,
+          notification,
+          causalityReport,
+          activeTableMetadata,
+          selectTable,
+          fetchTableData,
+          confirmTruncate,
+          backToMain,
+          isJson,
+          formatJson,
+          formatDate,
+          fetchTables,
+          fetchCausalityReport
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
