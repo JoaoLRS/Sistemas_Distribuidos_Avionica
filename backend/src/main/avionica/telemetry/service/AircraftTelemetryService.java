@@ -1,5 +1,7 @@
-package avionica.telemetry;
+package avionica.telemetry.service;
 
+import avionica.telemetry.model.AircraftDataSnapshot;
+import avionica.telemetry.model.AircraftMessage;
 import jakarta.annotation.PostConstruct;
 import jakarta.annotation.PreDestroy;
 import java.nio.charset.StandardCharsets;
@@ -25,7 +27,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
-
 
 // Responsavel por escutar os sensores dos arquivos python
 @Service

@@ -1,4 +1,4 @@
-package avionica.telemetry;
+package avionica.telemetry.model;
 
 import java.time.Instant;
 import java.util.List;

@@ -37,4 +37,14 @@ public class RouteKafkaProducer {
             logger.warn("Falha ao enviar simulacao encerrada ao Kafka: {}", e.getMessage());
         }
     }
+
+    public void sendAircraftCreated(String callsign, String modelo) {
+        try {
+            String payload = String.format("{\"callsign\":\"%s\",\"modelo\":\"%s\"}", callsign, modelo);
+            kafkaTemplate.send("avionica.aircraft.created", callsign, payload);
+            logger.info("Evento de criacao de aeronave enviado ao Kafka: {}", payload);
+        } catch (Exception e) {
+            logger.warn("Falha ao enviar evento de criacao de aeronave ao Kafka: {}", e.getMessage());
+        }
+    }
 }

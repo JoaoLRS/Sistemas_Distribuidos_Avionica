@@ -1,9 +1,9 @@
 package avionica.kafka;
 
+import avionica.route.service.RouteService;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -11,10 +11,10 @@ import org.springframework.stereotype.Component;
 public class RouteKafkaConsumer {
     private static final Logger logger = LoggerFactory.getLogger(RouteKafkaConsumer.class);
 
-    private final JdbcTemplate jdbc;
+    private final RouteService routeService;
 
-    public RouteKafkaConsumer(JdbcTemplate jdbc) {
-        this.jdbc = jdbc;
+    public RouteKafkaConsumer(RouteService routeService) {
+        this.routeService = routeService;
     }
 
     @KafkaListener(topics = "avionica.route.calculated", groupId = "backend-gateway")
@@ -29,25 +29,8 @@ public class RouteKafkaConsumer {
             int eta = json.getInt("eta_minutos");
             String routeText = json.optString("rota_texto", origin + " -> " + destination);
 
-            // Desativar outras rotas para esta aeronave
-            jdbc.update("UPDATE rotas_fms SET ativa = false WHERE callsign = ?", callsign);
-
-            // Inserir ou Atualizar a rota
-            int updated = jdbc.update(
-                "UPDATE rotas_fms SET rota_texto = ?, distancia_nm = ?, eta_minutos = ?, ativa = true WHERE callsign = ? AND icao_origem = ? AND icao_destino = ?",
-                routeText, distance, eta, callsign, origin, destination
-            );
-
-            if (updated == 0) {
-                jdbc.update(
-                    "INSERT INTO rotas_fms (callsign, icao_origem, icao_destino, rota_texto, distancia_nm, eta_minutos, ativa) VALUES (?, ?, ?, ?, ?, ?, true)",
-                    callsign, origin, destination, routeText, distance, eta
-                );
-            }
-
-            // Atualizar status da aeronave para 'Em Voo'
-            jdbc.update("UPDATE aeronaves SET status = 'Em Voo', ultima_atualizacao = NOW() WHERE callsign = ?", callsign);
-            logger.info("Aeronave {} atualizada para status 'Em Voo'", callsign);
+            routeService.onRouteCalculated(callsign, origin, destination, distance, eta, routeText);
+            logger.info("Aeronave {} atualizada para status 'Em Voo' pelo servico de rotas", callsign);
 
         } catch (Exception e) {
             logger.error("Erro ao processar mensagem de rota calculada do Kafka: {}", e.getMessage(), e);
