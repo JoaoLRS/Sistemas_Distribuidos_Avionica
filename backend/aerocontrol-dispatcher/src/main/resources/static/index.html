@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torre de Comando — Cadastro de Aeronaves</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="header-left">
+        <h1>✈️ Torre de Comando</h1>
+        <span class="subtitle">Cadastro e Gerenciamento de Aeronaves — Aviônica Distribuída</span>
+    </div>
+    <nav class="header-nav">
+        <a href="/" class="nav-link active">Nova Aeronave</a>
+        <a href="/aeronaves" class="nav-link">Aeronaves Ativas</a>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="form-section">
+        <h2 class="section-title">📝 Nova Aeronave</h2>
+
+        <form id="aircraft-form" class="aircraft-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="callsign">Código de Registro (Callsign)</label>
+                    <input type="text" id="callsign" placeholder="Ex: PR-AAA"
+                           required minlength="4" maxlength="8"
+                           pattern="[A-Za-z0-9\-]+"
+                           title="4 a 8 caracteres alfanuméricos">
+                    <span class="field-hint">4 a 8 caracteres. Ex: PR-AAA, VARIG101</span>
+                </div>
+
+                <div class="form-group">
+                    <label for="modelo">Modelo da Aeronave</label>
+                    <input type="text" id="modelo" placeholder="Ex: Boeing 737" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="capacidade">Capacidade de Combustível (litros)</label>
+                    <input type="number" id="capacidade" placeholder="Ex: 26000" required min="1">
+                </div>
+
+                <div class="form-group">
+                    <label for="velocidade">Velocidade de Cruzeiro (nós)</label>
+                    <input type="number" id="velocidade" placeholder="Ex: 450" required min="1">
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                💾 Salvar Aeronave
+            </button>
+        </form>
+    </section>
+</main>
+
+<div id="toast-container"></div>
+
+<script src="/js/cadastro.js"></script>
+</body>
+</html>

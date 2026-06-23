@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Torre de Comando — Aeronaves Ativas</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="header-left">
+        <h1>✈️ Torre de Comando</h1>
+        <span class="subtitle">Cadastro e Gerenciamento de Aeronaves — Aviônica Distribuída</span>
+    </div>
+    <nav class="header-nav">
+        <a href="/" class="nav-link">Nova Aeronave</a>
+        <a href="/aeronaves" class="nav-link active">Aeronaves Ativas</a>
+    </nav>
+</header>
+
+<main class="container">
+    <section class="list-section">
+        <div class="section-header">
+            <h2 class="section-title">🛩️ Aeronaves Cadastradas</h2>
+            <span class="badge" id="aircraft-count">—</span>
+        </div>
+
+        <div class="table-wrapper">
+            <table class="data-table">
+                <thead>
+                <tr>
+                    <th>Callsign</th>
+                    <th>Modelo</th>
+                    <th>Combustível (L)</th>
+                    <th>Cruzeiro (kts)</th>
+                    <th>Status</th>
+                    <th>Última Atualização</th>
+                    <th>Ação</th>
+                </tr>
+                </thead>
+                <tbody id="aircraft-body">
+                <tr>
+                    <td colspan="7" class="loading-cell">
+                        <div class="spinner"></div>
+                        Carregando aeronaves...
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="empty-message" id="empty-message" style="display:none">
+            <p>Nenhuma aeronave cadastrada.</p>
+            <a href="/" class="btn btn-primary">+ Cadastrar Aeronave</a>
+        </div>
+    </section>
+</main>
+
+<!-- Toast container -->
+<div id="toast-container"></div>
+
+<script src="/js/aeronaves.js"></script>
+</body>
+</html>
