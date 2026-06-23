@@ -1,4 +1,4 @@
-package avionica.timesync.model;
+package avionica.timesync.dto;
 
 import lombok.Builder;
 

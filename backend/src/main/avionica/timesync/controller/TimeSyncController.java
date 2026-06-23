@@ -1,6 +1,6 @@
-package avionica.api.controler;
+package avionica.timesync.controller;
 
-import avionica.timesync.model.TimeSyncResponse;
+import avionica.timesync.dto.TimeSyncResponse;
 import avionica.timesync.service.TimeSyncService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;

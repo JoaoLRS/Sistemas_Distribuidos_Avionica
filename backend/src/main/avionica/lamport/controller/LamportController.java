@@ -1,4 +1,4 @@
-package avionica.api.controler;
+package avionica.lamport.controller;
 
 import avionica.lamport.dto.TelemetriaOrdenadaDto;
 import avionica.lamport.service.LamportConsumerService;

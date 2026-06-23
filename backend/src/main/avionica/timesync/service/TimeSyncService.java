@@ -1,6 +1,6 @@
 package avionica.timesync.service;
 
-import avionica.timesync.model.TimeSyncResponse;
+import avionica.timesync.dto.TimeSyncResponse;
 import org.springframework.stereotype.Service;
 
 @Service

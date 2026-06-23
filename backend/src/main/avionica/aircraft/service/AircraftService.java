@@ -1,60 +1,64 @@
 package avionica.aircraft.service;
 
 import avionica.aircraft.dto.AircraftRequest;
-import avionica.kafka.RouteKafkaProducer;
-import org.springframework.jdbc.core.JdbcTemplate;
+import avionica.aircraft.model.Aircraft;
+import avionica.aircraft.repository.AircraftRepository;
+import avionica.kafka.producer.RouteKafkaProducer;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
 @Service
 public class AircraftService {
 
-    private final JdbcTemplate jdbc;
+    private final AircraftRepository aircraftRepository;
     private final RouteKafkaProducer kafkaProducer;
 
-    public AircraftService(JdbcTemplate jdbc, RouteKafkaProducer kafkaProducer) {
-        this.jdbc = jdbc;
+    public AircraftService(AircraftRepository aircraftRepository, RouteKafkaProducer kafkaProducer) {
+        this.aircraftRepository = aircraftRepository;
         this.kafkaProducer = kafkaProducer;
     }
 
     public void create(AircraftRequest request) {
         String callsign = request.callsign().trim().toUpperCase();
 
-        List<Map<String, Object>> existing = jdbc.queryForList(
-            "SELECT callsign FROM aeronaves WHERE callsign = ?", callsign
-        );
-        if (!existing.isEmpty()) {
+        if (aircraftRepository.existsById(callsign)) {
             throw new IllegalArgumentException("Aeronave com este callsign ja existe.");
         }
 
-        jdbc.update(
-            "INSERT INTO aeronaves (callsign, modelo, capacidade_combustivel, velocidade_cruzeiro, status, ultima_atualizacao) VALUES (?, ?, ?, ?, 'No Patio', NOW())",
-            callsign, request.modelo(), request.capacidade_combustivel(), request.velocidade_cruzeiro()
-        );
+        Aircraft aircraft = Aircraft.builder()
+            .callsign(callsign)
+            .modelo(request.modelo())
+            .capacidadeCombustivel(request.capacidade_combustivel())
+            .velocidadeCruzeiro(request.velocidade_cruzeiro())
+            .status("No Patio")
+            .ultimaAtualizacao(Instant.now())
+            .build();
+
+        aircraftRepository.save(aircraft);
 
         // Notificar no Kafka que a aeronave foi criada
         kafkaProducer.sendAircraftCreated(callsign, request.modelo());
     }
 
-    public List<Map<String, Object>> listAll() {
-        return jdbc.queryForList("SELECT * FROM aeronaves ORDER BY callsign");
+    public List<Aircraft> listAll() {
+        return aircraftRepository.findAll();
     }
 
     public void delete(String callsign) {
         callsign = callsign.trim().toUpperCase();
 
-        List<Map<String, Object>> aircraft = jdbc.queryForList(
-            "SELECT status FROM aeronaves WHERE callsign = ?", callsign
-        );
-        if (aircraft.isEmpty()) {
+        Optional<Aircraft> opt = aircraftRepository.findById(callsign);
+        if (opt.isEmpty()) {
             throw new IllegalArgumentException("Aeronave nao encontrada.");
         }
-        if ("Em Voo".equals(aircraft.get(0).get("status"))) {
+        Aircraft aircraft = opt.get();
+        if ("Em Voo".equals(aircraft.getStatus())) {
             throw new IllegalStateException("Nao e possivel excluir uma aeronave que esta em voo.");
         }
 
-        jdbc.update("DELETE FROM aeronaves WHERE callsign = ?", callsign);
+        aircraftRepository.delete(aircraft);
     }
 }

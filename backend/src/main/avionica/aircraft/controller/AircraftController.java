@@ -1,6 +1,7 @@
-package avionica.api.controler;
+package avionica.aircraft.controller;
 
 import avionica.aircraft.dto.AircraftRequest;
+import avionica.aircraft.model.Aircraft;
 import avionica.aircraft.service.AircraftService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -34,7 +35,7 @@ public class AircraftController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> list() {
+    public ResponseEntity<List<Aircraft>> list() {
         try {
             return ResponseEntity.ok(aircraftService.listAll());
         } catch (Exception e) {

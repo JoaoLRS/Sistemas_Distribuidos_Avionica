@@ -1,4 +1,4 @@
-package avionica.kafka;
+package avionica.kafka.consumer;
 
 import avionica.lamport.service.LamportConsumerService;
 import org.slf4j.Logger;

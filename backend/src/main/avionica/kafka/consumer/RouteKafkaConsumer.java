@@ -1,4 +1,4 @@
-package avionica.kafka;
+package avionica.kafka.consumer;
 
 import avionica.route.service.RouteService;
 import org.json.JSONObject;

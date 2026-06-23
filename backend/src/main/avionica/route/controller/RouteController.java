@@ -1,7 +1,8 @@
-package avionica.api.controler;
+package avionica.route.controller;
 
 import avionica.route.dto.RouteRequest;
 import avionica.route.dto.RouteResponse;
+import avionica.route.model.Route;
 import avionica.route.service.RouteService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -41,7 +42,7 @@ public class RouteController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Map<String, Object>>> list() {
+    public ResponseEntity<List<Route>> list() {
         try {
             return ResponseEntity.ok(routeService.listAll());
         } catch (Exception e) {
