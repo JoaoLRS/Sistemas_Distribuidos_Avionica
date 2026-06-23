@@ -244,6 +244,38 @@ services:
       postgres:
         condition: service_healthy
 
+  kafka-stream-gateway:
+    build:
+      context: ./backend
+      dockerfile: kafka-stream-gateway/Dockerfile
+    container_name: avionica_kafka_stream_gateway
+    environment:
+      SERVER_PORT: 9000
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "9000:9000"
+    depends_on:
+      - kafka
+
+  aerocontrol-dispatcher:
+    build:
+      context: ./backend
+      dockerfile: aerocontrol-dispatcher/Dockerfile
+    container_name: avionica_aerocontrol_dispatcher
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/avionica
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-avionica}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-avionica_dev}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    ports:
+      - "8082:8082"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+
 volumes:
   postgres_data:
   frontend_node_modules:
