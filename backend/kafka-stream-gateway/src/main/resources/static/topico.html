@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitor de Tópico — Kafka</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body class="stream-page">
+
+<header class="stream-header">
+    <div class="stream-header-left">
+        <a href="/" class="back-link">← Voltar</a>
+        <h1 id="topic-title" class="topic-title">—</h1>
+    </div>
+    <div class="stream-header-right">
+            <span class="connection-badge" id="connection-status">
+                <span class="conn-dot"></span> Conectando...
+            </span>
+        <button class="btn btn-secondary" id="pauseBtn" onclick="togglePause()">⏸ Pausar</button>
+        <button class="btn btn-outline" onclick="clearConsole()">🗑 Limpar</button>
+    </div>
+</header>
+
+<div class="console-header-row">
+    <span>Timestamp</span>
+    <span>Key</span>
+    <span>Partição:Offset</span>
+    <span>Payload (JSON)</span>
+</div>
+
+<main class="console-container" id="message-console">
+    <div class="empty-state" id="empty-state">
+        <p>⏳ Aguardando mensagens...</p>
+        <p class="hint">Mensagens novas aparecerão aqui em tempo real.</p>
+    </div>
+</main>
+
+<footer class="stream-footer">
+    <span id="msg-counter">0 mensagens recebidas</span>
+</footer>
+
+<script src="/js/stream.js"></script>
+</body>
+</html>

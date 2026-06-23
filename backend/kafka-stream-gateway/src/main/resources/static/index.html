@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kafka Stream Monitor — Aviônica</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+<header class="header">
+    <div class="header-left">
+        <h1>⚡ Kafka Stream Monitor</h1>
+        <span class="subtitle">Monitoramento do barramento de eventos — Aviônica Distribuída</span>
+    </div>
+    <div class="header-stats">
+        <div class="stat-box">
+            <span class="stat-value" id="total-topics">—</span>
+            <span class="stat-label">Tópicos</span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-value" id="total-messages">—</span>
+            <span class="stat-label">Mensagens</span>
+        </div>
+    </div>
+</header>
+
+<main class="container">
+    <div id="topic-grid" class="topic-grid">
+        <div class="loading-state">
+            <div class="spinner"></div>
+            <p>Conectando ao Kafka...</p>
+        </div>
+    </div>
+</main>
+
+<script src="/js/topics.js"></script>
+</body>
+</html>
