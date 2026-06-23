@@ -1,4 +1,4 @@
-package avionica.api;
+package avionica.api.controler;
 
 import avionica.timesync.model.TimeSyncResponse;
 import avionica.timesync.service.TimeSyncService;

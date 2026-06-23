@@ -1,4 +1,4 @@
-package avionica.api;
+package avionica.api.controler;
 
 import avionica.telemetry.model.AircraftDataSnapshot;
 import avionica.telemetry.service.AircraftTelemetryService;

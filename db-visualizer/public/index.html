@@ -489,6 +489,7 @@
 
   <script>
     const { createApp, ref, computed, onMounted } = Vue;
+    const API_BASE_URL = 'http://localhost:8080';
 
     createApp({
       setup() {
@@ -533,7 +534,7 @@
 
         const fetchTables = async () => {
           try {
-            const res = await fetch('/api/tables');
+            const res = await fetch(`${API_BASE_URL}/api/audit/tables`);
             const data = await res.json();
             if (data.success) {
               tables.value = data.tables;
@@ -547,7 +548,7 @@
 
         const fetchCausalityReport = async () => {
           try {
-            const res = await fetch('/api/audit/causality');
+            const res = await fetch(`${API_BASE_URL}/api/audit/causality`);
             const data = await res.json();
             if (data.success) {
               causalityReport.value = data;
@@ -579,7 +580,7 @@
               endDate: filters.value.endDate
             });
 
-            const res = await fetch(`/api/tables/${selectedTable.value}?${queryParams.toString()}`);
+            const res = await fetch(`${API_BASE_URL}/api/audit/tables/${selectedTable.value}?${queryParams.toString()}`);
             const data = await res.json();
             if (data.success) {
               tableData.value = {
@@ -601,7 +602,7 @@
           if (!confirm) return;
 
           try {
-            const res = await fetch(`/api/tables/${selectedTable.value}/truncate`, { method: 'POST' });
+            const res = await fetch(`${API_BASE_URL}/api/audit/tables/${selectedTable.value}/truncate`, { method: 'POST' });
             const data = await res.json();
             if (data.success) {
               notify(`A tabela ${selectedTable.value} foi zerada com sucesso!`);

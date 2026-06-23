@@ -1,4 +1,4 @@
-package avionica.api;
+package avionica.api.controler;
 
 import avionica.aircraft.dto.AircraftRequest;
 import avionica.aircraft.service.AircraftService;

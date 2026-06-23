@@ -1,4 +1,4 @@
-package avionica.api;
+package avionica.api.controler;
 
 import java.time.Instant;
 import java.util.List;

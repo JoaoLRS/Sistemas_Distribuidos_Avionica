@@ -1,4 +1,4 @@
-package avionica.api;
+package avionica.api.controler;
 
 import avionica.route.dto.RouteRequest;
 import avionica.route.dto.RouteResponse;
