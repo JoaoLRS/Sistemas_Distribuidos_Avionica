@@ -101,6 +101,8 @@ public class TopicService {
         }
     }
 
+
+    //TODO VERIFICAR O ERRO EM LISTCONSUMER
     private Map<String, Set<String>> getConsumerGroupsByTopic() {
         Map<String, Set<String>> result = new HashMap<>();
         try {
