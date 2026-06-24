@@ -1,10 +1,20 @@
 package avionica.torrecomando.model;
+
 import java.time.Instant;
-public record Aircraft(
-        String callsign,
-        String modelo,
-        Integer capacidadeCombustivel,
-        Integer velocidadeCruzeiro,
-        String status,
-        Instant ultimaAtualizacao
-) {}
+import lombok.Getter;
+import lombok.Setter;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+public class Aircraft {
+    private String callsign;
+    private String modelo;
+    private Integer capacidadeCombustivel;
+    private Integer velocidadeCruzeiro;
+    private String status;
+    private Instant ultimaAtualizacao;
+}
