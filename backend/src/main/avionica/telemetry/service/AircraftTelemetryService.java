@@ -167,7 +167,7 @@ public class AircraftTelemetryService implements MqttCallbackExtended {
             return Map.of();
         }
 
-        return message.payload();
+        return message.getPayload();
     }
 
     private Map<String, Object> parsePayload(MqttMessage mqttMessage) {

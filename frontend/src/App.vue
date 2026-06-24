@@ -251,40 +251,7 @@
 
     <!-- TAB 4: VISUALIZADOR DE BD -->
     <section v-if="activeTab === 'banco'" class="container-fluid px-4">
-      <div class="panel">
-        <h2 class="h5 text-white mb-2">Visualizador Web de Banco de Dados (PostgreSQL)</h2>
-        <p class="text-secondary small mb-4">Consulte os logs de telemetria diretamente das tabelas do banco aviônico.</p>
-
-        <div class="table-responsive">
-          <table class="table align-middle">
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Tópico</th>
-                <th>Bytes</th>
-                <th>Payload JSON</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="row in dbRows" :key="row.id">
-                <td class="mono small">{{ row.id }}</td>
-                <td class="mono fw-semibold small text-info">{{ row.topico }}</td>
-                <td class="mono small">{{ row.tamanho_bytes }} B</td>
-                <td>
-                  <code class="payload d-block text-truncate" style="max-width: 45rem;">
-                    {{ JSON.stringify(row.payload_json) }}
-                  </code>
-                </td>
-              </tr>
-              <tr v-if="dbRows.length === 0">
-                <td colspan="4" class="text-secondary small text-center py-4">
-                  Nenhuma telemetria gravada no banco de dados. Ative a simulação ou verifique a conexão PostgreSQL.
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+      <DbVisualizer :api-base-url="apiBaseUrl" />
     </section>
   </main>
 </template>
@@ -293,6 +260,7 @@
 import axios from 'axios';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import DataCard from './components/DataCard.vue';
+import DbVisualizer from './components/DbVisualizer.vue';
 
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
 
@@ -302,7 +270,6 @@ const health = ref(null);
 const aircraftData = ref({});
 const aircraftList = ref([]);
 const routeList = ref([]);
-const dbRows = ref([]);
 const error = ref('');
 let refreshTimer;
 
@@ -516,21 +483,7 @@ async function stopSimulation() {
   }
 }
 
-// API Auditoria Banco
-async function loadDbRows() {
-  try {
-    const response = await axios.get(`${apiBaseUrl}/api/telemetry/history`);
-    dbRows.value = response.data.slice(0, 30); // Limitar a 30 linhas recentes
-  } catch (err) {
-    // Se o endpoint de history nao existir no backend legado, fazer fallback silencioso
-    dbRows.value = rawMessages.value.map((msg, index) => ({
-      id: index + 1,
-      topico: msg.topic,
-      tamanho_bytes: JSON.stringify(msg.payload).length,
-      payload_json: msg.payload
-    }));
-  }
-}
+
 
 // Carregar Tudo
 async function loadAll() {
@@ -546,8 +499,7 @@ async function loadAll() {
 
     await Promise.all([
       loadAircraft(),
-      loadRoutes(),
-      loadDbRows()
+      loadRoutes()
     ]);
   } catch (requestError) {
     error.value = 'Nao foi possivel sincronizar dados. Verifique o backend-gateway.';
