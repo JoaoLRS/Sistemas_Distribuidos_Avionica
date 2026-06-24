@@ -22,7 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import avionica.kafkagateway.dto.TopicMessage;
+import avionica.kafkagateway.dto.TopicMessageDto;
 import jakarta.annotation.PreDestroy;
 
 @Service
@@ -64,7 +64,7 @@ public class MessageStreamService {
                     ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(500));
 
                     for (ConsumerRecord<String, String> record : records) {
-                        var msg = new TopicMessage(
+                        var msg = new TopicMessageDto(
                                 Instant.ofEpochMilli(record.timestamp()).toString(),
                                 record.key(),
                                 record.partition(),

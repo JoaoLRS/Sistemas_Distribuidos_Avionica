@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import avionica.torrecomando.dto.AircraftRequest;
 import avionica.torrecomando.model.Aircraft;
 import avionica.torrecomando.repository.AircraftRepository;
 
@@ -31,7 +30,7 @@ public class AircraftService {
      * Cadastra uma nova aeronave com status inicial "No Patio"
      * e publica evento no Kafka (avionica.aircraft.created).
      */
-    public void create(AircraftRequest request) {
+    public void create(avionica.torrecomando.dto.AircraftRequestDto request) {
         if (request.getCallsign() == null || request.getCallsign().isBlank()) {
             throw new IllegalArgumentException("Callsign é obrigatório.");
         }

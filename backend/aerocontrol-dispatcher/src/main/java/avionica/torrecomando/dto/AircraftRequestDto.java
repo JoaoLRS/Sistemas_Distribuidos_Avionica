@@ -9,7 +9,7 @@ import lombok.AllArgsConstructor;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AircraftRequest {
+public class AircraftRequestDto {
     private String callsign;
     private String modelo;
     private Integer capacidade_combustivel;

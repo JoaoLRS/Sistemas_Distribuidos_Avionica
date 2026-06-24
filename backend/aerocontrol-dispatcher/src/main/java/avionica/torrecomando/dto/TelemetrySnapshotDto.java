@@ -12,7 +12,7 @@ import lombok.AllArgsConstructor;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class TelemetrySnapshot {
+public class TelemetrySnapshotDto {
     private Map<String, Object> voo;
     private Map<String, Object> radar;
     private Map<String, Object> navegacao;

@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import avionica.torrecomando.dto.AircraftRequest;
 import avionica.torrecomando.model.Aircraft;
 import avionica.torrecomando.service.AircraftService;
 
@@ -31,7 +30,7 @@ public class AircraftController {
 
     /** CDU-01: Cadastra uma nova aeronave. */
     @PostMapping
-    public ResponseEntity<Map<String, String>> create(@RequestBody AircraftRequest request) {
+    public ResponseEntity<Map<String, String>> create(@RequestBody avionica.torrecomando.dto.AircraftRequestDto request) {
         try {
             service.create(request);
             return ResponseEntity.status(HttpStatus.CREATED)

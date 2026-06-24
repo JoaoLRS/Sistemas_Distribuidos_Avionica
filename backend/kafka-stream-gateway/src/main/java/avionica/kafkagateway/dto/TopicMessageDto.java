@@ -1,6 +1,6 @@
 package avionica.kafkagateway.dto;
 
-public record TopicMessage(
+public record TopicMessageDto(
         String timestamp,
         String key,
         int partition,

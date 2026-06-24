@@ -22,7 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import avionica.kafkagateway.dto.TopicInfo;
+import avionica.kafkagateway.dto.TopicInfoDto;
 
 @Service
 public class TopicService {
@@ -35,7 +35,7 @@ public class TopicService {
         this.adminClient = adminClient;
     }
 
-    public List<TopicInfo> listAllTopics() {
+    public List<TopicInfoDto> listAllTopics() {
         try {
 
             Set<String> topicNames = adminClient.listTopics()
@@ -74,7 +74,7 @@ public class TopicService {
             Map<String, Set<String>> groupsByTopic = getConsumerGroupsByTopic();
 
 
-            List<TopicInfo> result = new ArrayList<>();
+            List<TopicInfoDto> result = new ArrayList<>();
             for (String name : topicNames) {
                 TopicDescription desc = descriptions.get(name);
                 long totalMessages = 0;
@@ -89,7 +89,7 @@ public class TopicService {
                 String status = totalMessages > 0 ? "Ativo" : "Sem Atividade";
                 Set<String> groups = groupsByTopic.getOrDefault(name, Set.of());
 
-                result.add(new TopicInfo(name, totalMessages, status, desc.partitions().size(), groups));
+                result.add(new TopicInfoDto(name, totalMessages, status, desc.partitions().size(), groups));
             }
 
             result.sort((a, b) -> a.name().compareTo(b.name()));

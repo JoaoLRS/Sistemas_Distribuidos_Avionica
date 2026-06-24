@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import avionica.kafkagateway.dto.TopicInfo;
+import avionica.kafkagateway.dto.TopicInfoDto;
 import avionica.kafkagateway.service.MessageStreamService;
 import avionica.kafkagateway.service.TopicService;
 
@@ -27,7 +27,7 @@ public class TopicController {
 
     /** CDU-01: Lista todos os tópicos com estatísticas. */
     @GetMapping
-    public ResponseEntity<List<TopicInfo>> listTopics() {
+    public ResponseEntity<List<TopicInfoDto>> listTopics() {
         return ResponseEntity.ok(topicService.listAllTopics());
     }
 
