@@ -1,4 +1,4 @@
-# Tarefas de Execução — Rafael
+# Tarefas de Execução — João Lucas Cosme
 
 Você é responsável pelo desenvolvimento e integração de **dois módulos distribuídos** com foco em Resiliência de API e Replicação de Dados Geográfica.
 
