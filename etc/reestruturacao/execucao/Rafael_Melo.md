@@ -1,4 +1,4 @@
-# Tarefas de Execução — João Lucas Cosme
+# Tarefas de Execução — Rafael Melo
 
 Você é responsável pelo desenvolvimento e integração de **dois módulos distribuídos** com foco em Simulação Física Redundante e Injeção de Falhas para testes de robustez.
 
