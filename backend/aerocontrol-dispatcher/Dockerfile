@@ -4,7 +4,6 @@ WORKDIR /workspace
 COPY gradlew gradlew.bat ./
 COPY gradle ./gradle
 COPY aerocontrol-dispatcher/build.gradle ./build.gradle
-COPY aerocontrol-dispatcher/src ./src
 
 RUN printf 'pluginManagement {\n\
     repositories {\n\
@@ -21,7 +20,10 @@ dependencyResolutionManagement {\n\
 rootProject.name = "aerocontrol-dispatcher"\n' > settings.gradle
 
 RUN sed -i 's/\r$//' gradlew
-RUN chmod +x gradlew && ./gradlew bootJar --no-daemon
+RUN --mount=type=cache,target=/root/.gradle chmod +x gradlew && ./gradlew dependencies --no-daemon
+
+COPY aerocontrol-dispatcher/src ./src
+RUN --mount=type=cache,target=/root/.gradle ./gradlew bootJar --no-daemon --build-cache
 
 FROM eclipse-temurin:25-jre
 WORKDIR /app

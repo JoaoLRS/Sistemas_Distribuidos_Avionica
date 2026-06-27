@@ -11,8 +11,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.admin.AdminClient;
-import org.apache.kafka.clients.admin.ConsumerGroupListing;
+import org.apache.kafka.clients.admin.GroupListing;
+import org.apache.kafka.clients.admin.ListGroupsOptions;
 import org.apache.kafka.clients.admin.ListOffsetsResult;
+import org.apache.kafka.common.GroupType;
 import org.apache.kafka.clients.admin.OffsetSpec;
 import org.apache.kafka.clients.admin.TopicDescription;
 import org.apache.kafka.clients.consumer.OffsetAndMetadata;
@@ -102,14 +104,14 @@ public class TopicService {
     }
 
 
-    //TODO VERIFICAR O ERRO EM LISTCONSUMER
     private Map<String, Set<String>> getConsumerGroupsByTopic() {
         Map<String, Set<String>> result = new HashMap<>();
         try {
-            Collection<ConsumerGroupListing> groups = adminClient
-                    .listConsumerGroups().all().get(5, TimeUnit.SECONDS);
+            ListGroupsOptions options = new ListGroupsOptions().withTypes(Set.of(GroupType.CONSUMER));
+            Collection<GroupListing> groups = adminClient
+                    .listGroups(options).all().get(5, TimeUnit.SECONDS);
 
-            for (ConsumerGroupListing group : groups) {
+            for (GroupListing group : groups) {
                 try {
                     Map<TopicPartition, OffsetAndMetadata> offsets = adminClient
                             .listConsumerGroupOffsets(group.groupId())

@@ -2,9 +2,11 @@ FROM eclipse-temurin:25-jdk AS build
 WORKDIR /workspace
 COPY gradlew gradlew.bat settings.gradle build.gradle ./
 COPY gradle ./gradle
-COPY src ./src
 RUN sed -i 's/\r$//' gradlew
-RUN chmod +x gradlew && ./gradlew bootJar --no-daemon
+RUN --mount=type=cache,target=/root/.gradle chmod +x gradlew && ./gradlew dependencies --no-daemon
+
+COPY src ./src
+RUN --mount=type=cache,target=/root/.gradle ./gradlew bootJar --no-daemon --build-cache
 
 FROM eclipse-temurin:25-jre
 WORKDIR /app
