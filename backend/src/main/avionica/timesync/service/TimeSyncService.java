@@ -18,8 +18,10 @@ public class TimeSyncService {
      *   5. Calcular TempoSync = server_time_ns + (RTT / 2).
      */
     public TimeSyncResponse getCurrentTime() {
+        long nano = System.nanoTime();
         return new TimeSyncResponse(
-            System.nanoTime(),
+            nano,
+            nano,
             System.currentTimeMillis()
         );
     }

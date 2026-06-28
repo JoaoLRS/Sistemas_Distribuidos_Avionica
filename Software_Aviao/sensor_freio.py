@@ -11,6 +11,9 @@ import threading
 import time
 import uuid
 from datetime import datetime, timezone
+from cristian_client import CristianClock
+
+cristian_clock = CristianClock()
 
 from kafka import KafkaConsumer, KafkaProducer
 
@@ -271,7 +274,7 @@ def acionar_freios():
         "type": "TELEMETRY_BRAKE",
         "origem": f"SensorFreio_No{NODE_ID}",
         "module_id": f"sensor_freio_no_{NODE_ID}",
-        "timestamp": utc_now(),
+        "timestamp": cristian_clock.obter_tempo_iso(),
         "logical_clock": clock_value,
         "algoritmo_lock": "RICART_AGRAWALA",
         "dados": {
@@ -288,6 +291,8 @@ def acionar_freios():
 
 def iniciar_sensor():
     global producer, running
+
+    cristian_clock.sincronizar()
 
     producer = criar_producer()
     threading.Thread(target=loop_consumidor, daemon=True).start()

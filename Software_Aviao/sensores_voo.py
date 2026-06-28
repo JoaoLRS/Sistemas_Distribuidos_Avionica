@@ -4,6 +4,7 @@ import time
 import random
 import threading
 import paho.mqtt.client as mqtt
+from cristian_client import CristianClock
 
 BROKER = os.getenv("MQTT_BROKER", "broker.hivemq.com")
 PORTA = int(os.getenv("MQTT_PORT", "1883"))
@@ -39,6 +40,10 @@ def ao_receber_mensagem(client, userdata, msg):
 
 def iniciar_sensores_voo():
     global velocidade_atual_mach
+    
+    clock = CristianClock()
+    clock.sincronizar()
+    
     cliente = mqtt.Client()
     cliente.on_connect = ao_conectar
     cliente.on_message = ao_receber_mensagem
@@ -57,7 +62,7 @@ def iniciar_sensores_voo():
             
             pacote = {
                 "origem": "Sensores_Gerais_Voo",
-                "timestamp": time.time(),
+                "timestamp": clock.obter_tempo_s(),
                 "dados": {
                     "combustivel_pct": round(combustivel, 2),
                     "altitude_ft": altitude,

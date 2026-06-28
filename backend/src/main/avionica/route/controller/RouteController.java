@@ -26,13 +26,17 @@ public class RouteController {
             return ResponseEntity.badRequest().body(Map.of("erro", "Callsign, origin e destination sao obrigatorios."));
         }
         try {
-            routeService.requestRoute(body);
+            Route route = routeService.requestRoute(body);
+            String status = route.getRotaTexto().contains("FALLBACK") ? "FALLBACK" : "ACTIVE";
+            String mensagem = route.getRotaTexto().contains("FALLBACK") 
+                ? "Calculo via API falhou. Executado fallback local com sucesso."
+                : "Rota calculada com sucesso pelo FMS.";
             return ResponseEntity.ok(new RouteResponse(
-                "PENDING",
+                status,
                 body.callsign().toUpperCase(),
                 body.origin().toUpperCase(),
                 body.destination().toUpperCase(),
-                "Solicitacao enviada com sucesso ao FMS."
+                route.getRotaTexto() + " - " + mensagem
             ));
         } catch (IllegalArgumentException | IllegalStateException e) {
             return ResponseEntity.badRequest().body(Map.of("erro", e.getMessage()));
