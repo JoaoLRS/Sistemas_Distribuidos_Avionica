@@ -8,6 +8,9 @@ from servico_clima import buscar_metar, resumir_clima, classificar_risco
 
 
 AEROPORTO_REGIAO_A = os.getenv("RADAR_A_ICAO", "SBRF")
+INTERVALO_ATUALIZACAO = int(
+    os.getenv("RADAR_A_INTERVALO", "60")
+)
 
 
 class RadarClimaticoA:
@@ -189,7 +192,35 @@ class RadarClimaticoA:
         self.atualizar_clima_local()
         self.exibir_malha_climatica()
 
+    def monitorar_clima_local(self) -> None:
+        print(
+            f"[RADAR A] Monitoramento contínuo iniciado para "
+            f"{AEROPORTO_REGIAO_A}."
+        )
+
+        print(
+            f"[RADAR A] Atualização a cada "
+            f"{INTERVALO_ATUALIZACAO} segundos."
+        )
+
+        try:
+            while True:
+                self.atualizar_clima_local()
+                self.exibir_malha_climatica()
+
+                print(
+                    f"\n[RADAR A] Próxima atualização em "
+                    f"{INTERVALO_ATUALIZACAO} segundos..."
+                )
+
+                time.sleep(INTERVALO_ATUALIZACAO)
+
+        except KeyboardInterrupt:
+            print(
+                "\n[RADAR A] Monitoramento encerrado pelo usuário."
+            )
+
 
 if __name__ == "__main__":
     radar = RadarClimaticoA()
-    radar.iniciar_teste_local()
+    radar.monitorar_clima_local()
