@@ -123,4 +123,83 @@ public class AircraftService {
                 "emVoo", repository.countByStatus("Em Voo")
         );
     }
+
+    // ================================================================
+    // CONSENSO DE DECOLAGEM — 3 validações distribuídas
+    // ================================================================
+
+    /**
+     * Orquestra o consenso de decolagem para uma aeronave.
+     * Valida 3 condições obrigatórias antes de autorizar:
+     *   1. Clima (radar via Lamport) — bloqueia TEMPESTADE ou turbulência SEVERA
+     *   2. Redundância de Computadores — exige ≥2 computadores UP na tabela module_status
+     *   3. Plano de Voo FMS — exige rota ativa calculada para o callsign
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Object> requestTakeoff(String callsign) {
+        Aircraft aircraft = findByCallsign(callsign);
+
+        // Idempotente para suportar re-simulações amigáveis
+        if ("Em Voo".equalsIgnoreCase(aircraft.getStatus()) || "EM_VOO".equalsIgnoreCase(aircraft.getStatus())) {
+            return Map.of(
+                    "success", true,
+                    "message", "Aeronave " + callsign + " já está em voo. Decolagem previamente autorizada."
+            );
+        }
+
+        // ⚡ CONSENSO 1: Clima (Radar obtido por relógio Lamport)
+        var radarOpt = repository.findLatestTelemetriaRadar();
+        if (radarOpt.isPresent()) {
+            Map<String, Object> radar = radarOpt.get();
+            // O dado pode vir direto ou dentro de um campo "dados" (formato Lamport)
+            Map<String, Object> dados = radar.containsKey("dados")
+                    ? (Map<String, Object>) radar.get("dados")
+                    : radar;
+            if (dados != null) {
+                String clima = String.valueOf(dados.get("radar_clima"));
+                String turbulencia = String.valueOf(dados.get("turbulencia"));
+                if ("TEMPESTADE".equalsIgnoreCase(clima) || "SEVERA".equalsIgnoreCase(turbulencia)) {
+                    throw new IllegalArgumentException(
+                            "DECOLAGEM NEGADA: Condições meteorológicas extremas detectadas na região (" + clima + ", Turbulência: " + turbulencia + ")."
+                    );
+                }
+            }
+        }
+
+        // ⚡ CONSENSO 2: Computadores de Voo (Heartbeats na tabela module_status)
+        List<Map<String, Object>> computers = repository.findComputersStatus();
+        long activeCount = 0;
+        for (Map<String, Object> comp : computers) {
+            String status = String.valueOf(comp.get("status"));
+            if ("UP".equalsIgnoreCase(status)) {
+                activeCount++;
+            }
+        }
+        if (activeCount < 2) {
+            throw new IllegalArgumentException(
+                    "DECOLAGEM NEGADA: Sistema não possui tolerância a falhas ativa. Computadores de voo offline ou sem heartbeat."
+            );
+        }
+
+        // ⚡ CONSENSO 3: Plano de Voo (FMS)
+        var rotaOpt = repository.findRotaAtivaPorCallsign(callsign);
+        if (rotaOpt.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "DECOLAGEM NEGADA: Aeronave não possui plano de voo ativo calculado pelo FMS."
+            );
+        }
+
+        // Altera o estado da aeronave para "Em Voo"
+        repository.updateStatus(callsign, "Em Voo");
+
+        return Map.of(
+                "success", true,
+                "message", "Decolagem autorizada! Aeronave " + callsign + " em voo seguro.",
+                "consensoVerificado", Map.of(
+                        "clima", "OK",
+                        "redundanciaComputadores", "OK",
+                        "fmsPlan", "OK"
+                )
+        );
+    }
 }

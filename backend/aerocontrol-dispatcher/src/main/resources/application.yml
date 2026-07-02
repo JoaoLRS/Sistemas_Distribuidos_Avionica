@@ -11,7 +11,7 @@ spring:
     init:
       mode: never
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/avionica}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://avionica_postgres:5432/avionica}
     username: ${SPRING_DATASOURCE_USERNAME:avionica}
     password: ${SPRING_DATASOURCE_PASSWORD:avionica_dev}
     hikari:
@@ -19,7 +19,7 @@ spring:
       minimum-idle: 2
       connection-timeout: 10000
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:9092}
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer

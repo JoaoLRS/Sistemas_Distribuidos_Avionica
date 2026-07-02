@@ -258,4 +258,37 @@ public class AircraftRepository {
                 "alertas",   findAlertasAtivos()
         );
     }
+
+    // ========================================================
+    // CONSENSO DE DECOLAGEM — Queries de suporte
+    // ========================================================
+
+    /**
+     * Consulta o status dos computadores de voo na tabela module_status.
+     * Usado pelo Consenso 2 (redundância de computadores).
+     * Se a tabela não existir, retorna lista vazia (bloqueará a decolagem).
+     */
+    public List<Map<String, Object>> findComputersStatus() {
+        try {
+            return jdbc.queryForList(
+                    "SELECT module_name, status FROM module_status WHERE module_name LIKE '%computador%' OR module_name LIKE '%flight_computer%'"
+            );
+        } catch (Exception e) {
+            // Tabela pode não existir ainda — retorna vazio (bloqueia decolagem por segurança)
+            return List.of();
+        }
+    }
+
+    /**
+     * Busca rota FMS ativa para um callsign específico.
+     * Usado pelo Consenso 3 (plano de voo).
+     * Tabela: rotas_fms
+     */
+    public Optional<Map<String, Object>> findRotaAtivaPorCallsign(String callsign) {
+        List<Map<String, Object>> results = jdbc.queryForList(
+                "SELECT * FROM rotas_fms WHERE ativa = TRUE AND callsign = ? ORDER BY registrado_em DESC LIMIT 1",
+                callsign
+        );
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
+    }
 }

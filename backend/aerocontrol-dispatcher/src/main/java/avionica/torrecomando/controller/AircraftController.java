@@ -19,7 +19,7 @@ import avionica.torrecomando.model.Aircraft;
 import avionica.torrecomando.service.AircraftService;
 
 @RestController
-@RequestMapping("/api/aircraft")
+@RequestMapping({"/api/aircraft", "/api/dispatcher/aircraft"})
 public class AircraftController {
 
     private final AircraftService service;
@@ -113,5 +113,23 @@ public class AircraftController {
     @GetMapping("/telemetry/snapshot")
     public ResponseEntity<Map<String, Object>> getTelemetrySnapshot() {
         return ResponseEntity.ok(service.getTelemetrySnapshot());
+    }
+
+    /** CDU-04: Consenso de decolagem — valida clima, computadores e FMS. */
+    @PostMapping("/{callsign}/takeoff")
+    public ResponseEntity<?> requestTakeoff(@PathVariable String callsign) {
+        try {
+            Map<String, Object> result = service.requestTakeoff(callsign);
+            return ResponseEntity.ok(result);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                    .body(Map.of("success", false, "erro", e.getMessage()));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest()
+                    .body(Map.of("success", false, "erro", e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("success", false, "erro", "Erro interno no orquestrador de decolagem: " + e.getMessage()));
+        }
     }
 }
