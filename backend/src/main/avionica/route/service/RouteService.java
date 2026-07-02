@@ -20,6 +20,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import avionica.telemetry.service.AircraftTelemetryService;
+
 @Service
 public class RouteService {
     private static final Logger logger = LoggerFactory.getLogger(RouteService.class);
@@ -27,14 +29,17 @@ public class RouteService {
     private final RouteRepository routeRepository;
     private final AircraftRepository aircraftRepository;
     private final RouteKafkaProducer kafkaProducer;
+    private final AircraftTelemetryService telemetryService;
 
     private final CustomCircuitBreaker circuitBreaker = new CustomCircuitBreaker("FMS-CircuitBreaker", 3, 10000);
     private final Map<String, CompletableFuture<Route>> pendingRequests = new ConcurrentHashMap<>();
 
-    public RouteService(RouteRepository routeRepository, AircraftRepository aircraftRepository, RouteKafkaProducer kafkaProducer) {
+    public RouteService(RouteRepository routeRepository, AircraftRepository aircraftRepository, 
+                        RouteKafkaProducer kafkaProducer, AircraftTelemetryService telemetryService) {
         this.routeRepository = routeRepository;
         this.aircraftRepository = aircraftRepository;
         this.kafkaProducer = kafkaProducer;
+        this.telemetryService = telemetryService;
     }
 
     public Route requestRoute(RouteRequest request) {
@@ -48,8 +53,9 @@ public class RouteService {
         }
 
         Aircraft aircraft = optAircraft.get();
+        // Permite re-simulação: reseta status se já estava em voo
         if ("Em Voo".equals(aircraft.getStatus())) {
-            throw new IllegalStateException("Aeronave informada ja esta em voo ativo.");
+            logger.info("Aeronave {} em voo ativo. Resetando para re-simulação.", callsign);
         }
 
         if (!circuitBreaker.canExecute()) {
@@ -79,6 +85,17 @@ public class RouteService {
         pendingRequests.put(callsign, future);
 
         kafkaProducer.sendRouteRequest(callsign, origin, destination);
+        
+        // Publicar a requisição no broker MQTT para que o FMS (python) escute
+        try {
+            String mqttPayload = String.format(
+                "{\"callsign\":\"%s\",\"origem\":\"%s\",\"destino\":\"%s\"}",
+                callsign, origin, destination
+            );
+            telemetryService.publish("avionica/comandos/rota", mqttPayload);
+        } catch (Exception e) {
+            logger.warn("Falha ao publicar solicitacao de rota no MQTT: {}", e.getMessage());
+        }
 
         try {
             Route calculatedRoute = future.get(3, TimeUnit.SECONDS);
@@ -141,6 +158,12 @@ public class RouteService {
 
         routeRepository.deactivatePreviousRoutes(callsign);
         kafkaProducer.sendSimulationEnded(callsign);
+
+        try {
+            telemetryService.publish("avionica/comandos/simulacao", "{\"status\":\"STOP\",\"callsign\":\"" + callsign + "\"}");
+        } catch (Exception e) {
+            logger.warn("Falha ao enviar sinal STOP de simulacao ao MQTT: {}", e.getMessage());
+        }
     }
 
     public void onRouteCalculated(String callsign, String origin, String destination,
@@ -181,6 +204,12 @@ public class RouteService {
         CompletableFuture<Route> future = pendingRequests.get(callsign);
         if (future != null) {
             future.complete(route);
+        }
+
+        try {
+            telemetryService.publish("avionica/comandos/simulacao", "{\"status\":\"START\",\"callsign\":\"" + callsign + "\"}");
+        } catch (Exception e) {
+            logger.warn("Falha ao enviar sinal START de simulacao ao MQTT: {}", e.getMessage());
         }
     }
 }

@@ -82,6 +82,21 @@ public class AircraftTelemetryService implements MqttCallbackExtended {
         }
     }
 
+    public void publish(String topic, String payload) {
+        if (client != null && client.isConnected()) {
+            try {
+                MqttMessage message = new MqttMessage(payload.getBytes(StandardCharsets.UTF_8));
+                message.setQos(1);
+                client.publish(topic, message);
+                logger.info("Mensagem publicada via MQTT no topico {}: {}", topic, payload);
+            } catch (MqttException e) {
+                logger.warn("Falha ao publicar no MQTT no topico {}: {}", topic, e.getMessage());
+            }
+        } else {
+            logger.warn("Nao foi possivel publicar no MQTT (cliente desconectado). Topico: {}", topic);
+        }
+    }
+
     public AircraftDataSnapshot snapshot() {
         List<AircraftMessage> messages;
 
