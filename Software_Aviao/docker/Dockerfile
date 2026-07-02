@@ -5,7 +5,7 @@ FROM python:3.11-slim
 WORKDIR /app
 
 # Permite que os modulos Python publiquem e consumam Kafka
-RUN pip install paho-mqtt requests kafka-python
+RUN pip install paho-mqtt requests kafka-python psycopg2-binary
 
 # Copia os módulos Python para dentro do contentor
 COPY *.py ./

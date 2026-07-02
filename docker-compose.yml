@@ -272,6 +272,40 @@ services:
       - kafka
       - kafka-topic-init
 
+  # ── Módulos da Gabriela ──────────────────────────────────────
+
+  tmr-voter:
+    build:
+      context: ./Software_Aviao
+      dockerfile: docker/Dockerfile
+    container_name: avionica_tmr_voter
+    command: python consenso_motor.py
+    environment:
+      PYTHONUNBUFFERED: "1"
+      KAFKA_BROKER: kafka:9092
+    depends_on:
+      - kafka
+      - kafka-topic-init
+
+  heartbeat-detector:
+    build:
+      context: ./Software_Aviao
+      dockerfile: docker/Dockerfile
+    container_name: avionica_heartbeat_detector
+    command: python detector_falhas.py
+    environment:
+      PYTHONUNBUFFERED: "1"
+      KAFKA_BROKER: kafka:9092
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: avionica
+      DB_USER: avionica
+      DB_PASS: avionica_dev
+    depends_on:
+      - kafka
+      - kafka-topic-init
+      - postgres
+
   injetor-kafka:
     build:
       context: ./Software_Aviao
@@ -361,6 +395,33 @@ services:
       MQTT_PORT: 1883
     depends_on:
       - mqtt-broker
+
+  caixa-preta-slave:
+    build:
+      context: ./Software_Aviao
+      dockerfile: docker/Dockerfile
+    container_name: avionica_caixa_preta_slave
+    command: python caixa_preta.py --role slave
+    environment:
+      PYTHONUNBUFFERED: "1"
+      ROLE: slave
+      SLAVE_PORT: 8500
+
+  caixa-preta-master:
+    build:
+      context: ./Software_Aviao
+      dockerfile: docker/Dockerfile
+    container_name: avionica_caixa_preta_master
+    command: python caixa_preta.py --role master
+    environment:
+      PYTHONUNBUFFERED: "1"
+      KAFKA_BROKER: kafka:9092
+      ROLE: master
+      SLAVE_HOST: caixa-preta-slave
+      SLAVE_PORT: 8500
+    depends_on:
+      - kafka
+      - caixa-preta-slave
 
 volumes:
   postgres_data:

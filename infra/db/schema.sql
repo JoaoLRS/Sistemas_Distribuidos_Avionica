@@ -216,3 +216,16 @@ CREATE INDEX IF NOT EXISTS idx_telemetria_ord_tempo ON telemetria_ordenada (rece
 COMMENT ON TABLE telemetria_ordenada IS
     'Telemetria persistida em ordem causal usando Relógio Lógico de Lamport (Nickolas / Nickollas)';
 
+-- ============================================================
+-- 12. STATUS DOS MÓDULOS (Detector de Falhas - Gabriela)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS module_status (
+    modulo             VARCHAR(100) PRIMARY KEY,
+    status             VARCHAR(50)  NOT NULL,
+    ultima_atualizacao TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO module_status (modulo, status, ultima_atualizacao)
+VALUES ('Computador_Primario', 'UP', NOW()),
+       ('Computador_Secundario', 'UP', NOW())
+ON CONFLICT (modulo) DO NOTHING;
