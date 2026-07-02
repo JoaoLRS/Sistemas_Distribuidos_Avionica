@@ -9,7 +9,7 @@ const routes = [
   { path: '/painel', name: 'painel', component: HomeView },
   { path: '/simulacao', name: 'simulacao', component: SimulationView },
   { path: '/simulacao/rota', name: 'simulacao-rota', component: RouteView },
-  { path: '/simulacao/dashboard/:id_aeronave_:id_decolagem_:id_destino', name: 'simulacao-dashboard', component: DashboardView, props: true }
+  { path: '/simulacao/dashboard/:id_aeronave/:id_decolagem/:id_destino', name: 'simulacao-dashboard', component: DashboardView, props: true }
 ];
 
 const router = createRouter({

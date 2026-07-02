@@ -100,7 +100,7 @@ async function startSimulation() {
     }
 
     // Redireciona para o dashboard seguindo a convenção do CDU-04
-    router.push(`/simulacao/dashboard/${callsign.value}_${cleanOrigin}_${cleanDestination}`);
+    router.push(`/simulacao/dashboard/${callsign.value}/${cleanOrigin}/${cleanDestination}`);
   } catch (err) {
     error.value = err.response?.data?.erro || err.response?.data?.error || 'Decolagem Recusada pela Torre de Comando (AeroControl).';
     console.error(err);

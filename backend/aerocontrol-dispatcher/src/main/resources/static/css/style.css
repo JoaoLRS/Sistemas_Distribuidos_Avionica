@@ -194,6 +194,17 @@ body {
     opacity: 0.35;
     cursor: not-allowed;
 }
+.btn-warning {
+    background: transparent;
+    color: var(--warning);
+    border: 1px solid rgba(245, 158, 11, 0.3);
+    font-size: 0.78rem;
+    padding: 0.35rem 0.75rem;
+    margin-left: 0.5rem;
+}
+.btn-warning:hover {
+    background: rgba(245, 158, 11, 0.1);
+}
 
 /* --- Table --- */
 .list-section {

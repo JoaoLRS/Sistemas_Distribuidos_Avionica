@@ -172,13 +172,27 @@ public class AircraftRepository {
 
     /**
      * Busca a última telemetria de radar externo.
-     * Tabela: telemetria_radar
+     * Tabela: telemetria_ordenada (topico_kafka = 'avionica.telemetry.radar')
      */
     public Optional<Map<String, Object>> findLatestTelemetriaRadar() {
         List<Map<String, Object>> results = jdbc.queryForList(
-                "SELECT * FROM telemetria_radar ORDER BY recebido_em DESC LIMIT 1"
+                "SELECT payload_json::text AS payload_str, recebido_em FROM telemetria_ordenada WHERE topico_kafka = 'avionica.telemetry.radar' ORDER BY recebido_em DESC LIMIT 1"
         );
-        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
+        if (results.isEmpty()) {
+            return Optional.empty();
+        }
+        Map<String, Object> row = results.getFirst();
+        String payloadStr = (String) row.get("payload_str");
+        try {
+            org.json.JSONObject jsonObj = new org.json.JSONObject(payloadStr);
+            org.json.JSONObject payloadNode = jsonObj.optJSONObject("payload");
+            if (payloadNode != null) {
+                return Optional.of(payloadNode.toMap());
+            }
+            return Optional.of(jsonObj.toMap());
+        } catch (Exception e) {
+            return Optional.empty();
+        }
     }
 
     /**
@@ -244,6 +258,31 @@ public class AircraftRepository {
     }
 
     /**
+     * Busca a rota FMS ativa por callsign.
+     */
+    public Optional<Map<String, Object>> findRotaAtivaPorCallsign(String callsign) {
+        List<Map<String, Object>> results = jdbc.queryForList(
+                "SELECT * FROM rotas_fms WHERE callsign = ? AND ativa = TRUE ORDER BY registrado_em DESC LIMIT 1",
+                callsign
+        );
+        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
+    }
+
+    /**
+     * Busca o status dos computadores de voo críticos (Primário e Secundário).
+     */
+    public List<Map<String, Object>> findComputersStatus() {
+        try {
+            return jdbc.queryForList(
+                    "SELECT modulo, status, ultima_atualizacao FROM module_status WHERE modulo IN ('Computador_Primario', 'Computador_Secundario')"
+            );
+        } catch (Exception e) {
+            // Tabela pode não existir ainda — retorna vazio (bloqueia decolagem por segurança)
+            return List.of();
+        }
+    }
+
+    /**
      * Snapshot consolidado: busca o último dado de cada tipo de telemetria
      * para montar a visão da Torre de Comando.
      */
@@ -257,38 +296,5 @@ public class AircraftRepository {
                 "rota_ativa", findRotaAtiva().orElse(Map.of()),
                 "alertas",   findAlertasAtivos()
         );
-    }
-
-    // ========================================================
-    // CONSENSO DE DECOLAGEM — Queries de suporte
-    // ========================================================
-
-    /**
-     * Consulta o status dos computadores de voo na tabela module_status.
-     * Usado pelo Consenso 2 (redundância de computadores).
-     * Se a tabela não existir, retorna lista vazia (bloqueará a decolagem).
-     */
-    public List<Map<String, Object>> findComputersStatus() {
-        try {
-            return jdbc.queryForList(
-                    "SELECT module_name, status FROM module_status WHERE module_name LIKE '%computador%' OR module_name LIKE '%flight_computer%'"
-            );
-        } catch (Exception e) {
-            // Tabela pode não existir ainda — retorna vazio (bloqueia decolagem por segurança)
-            return List.of();
-        }
-    }
-
-    /**
-     * Busca rota FMS ativa para um callsign específico.
-     * Usado pelo Consenso 3 (plano de voo).
-     * Tabela: rotas_fms
-     */
-    public Optional<Map<String, Object>> findRotaAtivaPorCallsign(String callsign) {
-        List<Map<String, Object>> results = jdbc.queryForList(
-                "SELECT * FROM rotas_fms WHERE ativa = TRUE AND callsign = ? ORDER BY registrado_em DESC LIMIT 1",
-                callsign
-        );
-        return results.isEmpty() ? Optional.empty() : Optional.of(results.getFirst());
     }
 }

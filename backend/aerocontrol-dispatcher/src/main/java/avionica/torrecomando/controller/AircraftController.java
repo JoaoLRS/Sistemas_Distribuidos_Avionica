@@ -115,7 +115,9 @@ public class AircraftController {
         return ResponseEntity.ok(service.getTelemetrySnapshot());
     }
 
-    /** CDU-04: Consenso de decolagem — valida clima, computadores e FMS. */
+    /**
+     * Valida decolagem através de consenso distribuído (Clima, Redundância de Computadores, Plano de Voo FMS).
+     */
     @PostMapping("/{callsign}/takeoff")
     public ResponseEntity<?> requestTakeoff(@PathVariable String callsign) {
         try {

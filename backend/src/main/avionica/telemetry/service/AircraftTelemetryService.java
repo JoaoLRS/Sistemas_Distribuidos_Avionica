@@ -43,6 +43,7 @@ public class AircraftTelemetryService implements MqttCallbackExtended {
     private final Map<String, AircraftMessage> latestByTopic = new ConcurrentHashMap<>();
     private final Deque<AircraftMessage> recentMessages = new ArrayDeque<>();
     private final JdbcTemplate jdbc;
+    private boolean simulacaoAtiva = false;
 
     private MqttClient client;
 
@@ -139,6 +140,29 @@ public class AircraftTelemetryService implements MqttCallbackExtended {
     public void messageArrived(String topic, MqttMessage mqttMessage) {
         String rawPayload = new String(mqttMessage.getPayload(), StandardCharsets.UTF_8);
         Map<String, Object> payload = parsePayload(mqttMessage);
+
+        if ("avionica/comandos/simulacao".equals(topic)) {
+            String status = String.valueOf(payload.get("status"));
+            if ("START".equalsIgnoreCase(status)) {
+                simulacaoAtiva = true;
+                logger.info("[SIMULAÇÃO] Recebido sinal START do MQTT. Ativando telemetrias.");
+            } else if ("STOP".equalsIgnoreCase(status)) {
+                simulacaoAtiva = false;
+                latestByTopic.clear();
+                synchronized (recentMessages) {
+                    recentMessages.clear();
+                }
+                logger.info("[SIMULAÇÃO] Recebido sinal STOP do MQTT. Telemetrias desativadas.");
+            }
+            return;
+        }
+
+        boolean ehTopicoSempreAtivo = "avionica/comandos/rota".equals(topic) || "avionica/fms/dados".equals(topic);
+
+        if (!simulacaoAtiva && !ehTopicoSempreAtivo) {
+            return;
+        }
+
         AircraftMessage message = new AircraftMessage(topic, Instant.now(), payload);
 
         latestByTopic.put(topic, message);
@@ -200,5 +224,9 @@ public class AircraftTelemetryService implements MqttCallbackExtended {
 
         source.forEach((key, value) -> normalized.put(String.valueOf(key), value));
         return normalized;
+    }
+
+    public boolean isSimulacaoAtiva() {
+        return simulacaoAtiva;
     }
 }

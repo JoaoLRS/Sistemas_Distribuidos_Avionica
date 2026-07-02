@@ -23,8 +23,8 @@ CHECK_INTERVAL    = 2   # Intervalo de verificação (segundos)
 
 # ── Mapeamento de nomes ──────────────────────────────────────
 MODULE_NAME_MAP = {
-    "FlightComputer_Node1": "Computador_Primario",
-    "FlightComputer_Node2": "Computador_Secundario",
+    "FlightComputer_Node1": "Computador_Secundario",
+    "FlightComputer_Node2": "Computador_Primario",
     "Computador_Primario":  "Computador_Primario",
     "Computador_Secundario": "Computador_Secundario",
     "computador_primario":  "Computador_Primario",

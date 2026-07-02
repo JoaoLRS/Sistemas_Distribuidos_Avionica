@@ -344,12 +344,9 @@ async function fetchTelemetry() {
 async function fetchAlerts() {
   try {
     // Buscar alertas ativos da aeronave na torre
-    const res = await axios.get(`${dispatcherUrl}/api/dispatcher/aircraft`);
-    const activeList = res.data;
-    // Se a torre retornar os alertas no TelemetrySnapshot, usamos
-    const currentAc = activeList.find(ac => ac.callsign === props.id_aeronave);
-    if (currentAc && currentAc.telemetrySnapshot && currentAc.telemetrySnapshot.alertas) {
-      activeAlerts.value = currentAc.telemetrySnapshot.alertas;
+    const res = await axios.get(`${dispatcherUrl}/api/dispatcher/aircraft/telemetry/snapshot`);
+    if (res.data && res.data.alertas) {
+      activeAlerts.value = res.data.alertas;
     } else {
       activeAlerts.value = [];
     }

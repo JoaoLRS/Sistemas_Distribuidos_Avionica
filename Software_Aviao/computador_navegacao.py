@@ -7,18 +7,44 @@ import paho.mqtt.client as mqtt
 BROKER = os.getenv("MQTT_BROKER", "broker.hivemq.com")
 PORTA = int(os.getenv("MQTT_PORT", "1883"))
 TOPICO_NAV = "avionica/navegacao"
+TOPICO_SIMULACAO = "avionica/comandos/simulacao"
+
+simulacao_ativa = False
+
+def ao_conectar(client, userdata, flags, rc):
+    client.subscribe(TOPICO_SIMULACAO)
+
+def ao_receber_mensagem(client, userdata, msg):
+    global simulacao_ativa
+    try:
+        pacote = json.loads(msg.payload.decode("utf-8"))
+        status = pacote.get("status")
+        if status == "START":
+            simulacao_ativa = True
+        elif status == "STOP":
+            simulacao_ativa = False
+    except Exception:
+        pass
 
 def iniciar_navegacao():
+    global simulacao_ativa
     cliente = mqtt.Client()
+    cliente.on_connect = ao_conectar
+    cliente.on_message = ao_receber_mensagem
     cliente.connect(BROKER, PORTA, 60)
-    print("🧭 Computador de Navegação e Automação INICIADO.")
-    print("A calcular rotas, proa e status do Piloto Automático...")
+    cliente.loop_start()
+    
+    print("🧭 Computador de Navegação e Automação INICIADO (Aguardando simulação...).")
     print("-" * 50)
 
     waypoints = ["LISBOA_FIR", "WAYPOINT_ALFA", "ROTA_OCEANICA", "APROXIMACAO_FINAL"]
 
     try:
         while True:
+            if not simulacao_ativa:
+                time.sleep(1)
+                continue
+
             # Simulando os cálculos de navegação
             pacote = {
                 "origem": "Computador_Nav",
@@ -36,6 +62,7 @@ def iniciar_navegacao():
             
     except KeyboardInterrupt:
         print("\nNavegação Desligada.")
+        cliente.loop_stop()
         cliente.disconnect()
 
 if __name__ == "__main__":

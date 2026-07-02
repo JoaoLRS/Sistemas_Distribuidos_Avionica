@@ -54,10 +54,45 @@ def build_kafka_message(mqtt_topic, payload, event_type):
 def on_connect(client, userdata, flags, rc):
     print(f"[mqtt-kafka-bridge] conectado ao MQTT rc={rc}")
     client.subscribe(MQTT_TOPIC_FILTER)
-    print(f"[mqtt-kafka-bridge] assinando {MQTT_TOPIC_FILTER}")
+    # Assinar tópicos com ponto (usados por computadores de voo para heartbeats)
+    client.subscribe("avionica.module.health")
+    client.subscribe("avionica.system.keepalive")
+    client.subscribe("avionica.system.election")
+    print(f"[mqtt-kafka-bridge] assinando {MQTT_TOPIC_FILTER} + avionica.module.health + avionica.system.*")
 
+
+simulacao_ativa = False
 
 def on_message(client, userdata, msg):
+    global simulacao_ativa
+    
+    # Processa comandos de simulação
+    if msg.topic == "avionica/comandos/simulacao":
+        try:
+            payload = parse_payload(msg.payload)
+            status = payload.get("status")
+            if status == "START":
+                simulacao_ativa = True
+                print("🏁 [mqtt-kafka-bridge] Simulação INICIADA. Telemetrias ativas.")
+            elif status == "STOP":
+                simulacao_ativa = False
+                print("🛑 [mqtt-kafka-bridge] Simulação ENCERRADA. Telemetrias pausadas.")
+        except Exception as e:
+            pass
+
+    # Tópicos permitidos a qualquer momento (para inicialização de rotas e comandos)
+    topicos_sempre_ativos = {
+        "avionica/comandos/simulacao",
+        "avionica/comandos/rota",
+        "avionica/fms/dados",
+        "avionica.module.health",
+        "avionica.system.keepalive",
+    }
+
+    if not simulacao_ativa and msg.topic not in topicos_sempre_ativos:
+        # Descarta telemetria se a simulação não estiver ativa
+        return
+
     mapping = MQTT_TO_KAFKA.get(msg.topic)
 
     if not mapping:

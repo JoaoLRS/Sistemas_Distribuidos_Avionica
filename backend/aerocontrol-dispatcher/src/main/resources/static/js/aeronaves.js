@@ -43,9 +43,34 @@ function renderAircraft(aircraft) {
             '<button class="btn btn-danger" onclick="deleteAircraft(\'' + escapeHtml(a.callsign) + '\')"' +
             (isInFlight ? ' disabled title="Não é possível excluir aeronave em voo"' : '') +
             '>🗑 Excluir</button>' +
+            (isInFlight ? ' <button class="btn btn-warning" onclick="abortFlight(\'' + escapeHtml(a.callsign) + '\')">⚠️ Abortar Voo</button>' : '') +
             '</td>' +
             '</tr>';
     }).join('');
+}
+
+async function abortFlight(callsign) {
+    if (!confirm('Deseja abortar o voo da aeronave ' + callsign + ' e liberá-la para o pátio?')) return;
+
+    try {
+        var response = await fetch('/api/aircraft/' + encodeURIComponent(callsign) + '/status', {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: 'Em Preparacao' })
+        });
+        var result = await response.json();
+
+        if (response.ok) {
+            showToast('Voo da aeronave ' + callsign + ' abortado. Status atualizado para Em Preparacao.', 'success');
+            loadAircraft();
+        } else {
+            showToast(result.error || 'Erro ao abortar voo.', 'error');
+        }
+    } catch (error) {
+        showToast('Erro de conexão.', 'error');
+    }
 }
 
 async function deleteAircraft(callsign) {

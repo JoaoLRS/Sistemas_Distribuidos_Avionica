@@ -3,7 +3,6 @@ import time
 import threading
 import json
 import random
-
 import os
 
 # Configurações do Broker
@@ -15,6 +14,7 @@ TOPIC_HEALTH = "avionica.module.health"
 TOPIC_KEEPALIVE = "avionica.system.keepalive"
 TOPIC_ELECTION = "avionica.system.election"
 TOPIC_TELEMETRY = "avionica/navegacao"
+TOPIC_SIMULACAO = "avionica/comandos/simulacao"
 
 class FlightComputerNode:
     def __init__(self, node_id):
@@ -23,6 +23,7 @@ class FlightComputerNode:
         self.leader_id = None
         self.last_heartbeat_time = time.time()
         self.election_in_progress = False
+        self.simulacao_ativa = False
         
         # Identificação e configuração do Client MQTT
         self.client_id = f"FlightComputer_{self.node_id}"
@@ -55,9 +56,22 @@ class FlightComputerNode:
         print(f"[MQTT] Conectado ao broker com código de resultado {rc}")
         self.client.subscribe(TOPIC_KEEPALIVE)
         self.client.subscribe(TOPIC_ELECTION)
+        self.client.subscribe(TOPIC_SIMULACAO)
 
     def on_message(self, client, userdata, msg):
-        payload = json.loads(msg.payload.decode('utf-8'))
+        try:
+            payload = json.loads(msg.payload.decode('utf-8'))
+        except Exception:
+            return
+
+        if msg.topic == TOPIC_SIMULACAO:
+            status = payload.get("status")
+            if status == "START":
+                self.simulacao_ativa = True
+                self.last_heartbeat_time = time.time()
+            elif status == "STOP":
+                self.simulacao_ativa = False
+            return
         
         # 1. Tratamento de Heartbeat (Keep-Alive)
         if msg.topic == TOPIC_KEEPALIVE:
@@ -124,6 +138,11 @@ class FlightComputerNode:
         """Secundário: Monitora se o Primário parou de enviar pings."""
         TIMEOUT = 6.0 # Segundos sem ping antes de considerar o líder morto
         while True:
+            if not self.simulacao_ativa:
+                self.last_heartbeat_time = time.time()
+                time.sleep(1)
+                continue
+
             if not self.is_leader and not self.election_in_progress:
                 if time.time() - self.last_heartbeat_time > TIMEOUT:
                     print("[FALHA] Timeout de Heartbeat! O Líder caiu. Iniciando Bully Algorithm.")
@@ -133,6 +152,10 @@ class FlightComputerNode:
     def heartbeat_loop(self):
         """Primário: Publica heartbeats a cada 3 segundos."""
         while True:
+            if not self.simulacao_ativa:
+                time.sleep(1)
+                continue
+
             if self.is_leader:
                 health_msg = {"node_id": self.node_id, "status": "active", "timestamp": time.time()}
                 self.client.publish(TOPIC_HEALTH, json.dumps(health_msg))
@@ -143,6 +166,10 @@ class FlightComputerNode:
     def telemetry_loop(self):
         """Líder: Processa dados de guiamento e publica em produção."""
         while True:
+            if not self.simulacao_ativa:
+                time.sleep(1)
+                continue
+
             if self.is_leader:
                 # Simulação de cálculo de velocidade vertical e posicionamento
                 vertical_speed = round(random.uniform(-5.0, 5.0), 2)

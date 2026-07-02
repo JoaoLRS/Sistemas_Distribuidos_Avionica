@@ -1,15 +1,11 @@
 <template>
   <main class="app-shell pb-5">
-    <!-- Navbar Superior -->
     <nav class="navbar navbar-expand-lg navbar-dark border-bottom">
       <div class="container-fluid px-4">
-        <!-- Logo (SGCA - CDU-01) -->
         <router-link to="/painel" class="navbar-brand fw-semibold text-white mono d-flex align-items-center gap-2">
           <span>✈️ SGCA</span>
           <span class="text-secondary small ms-2 mono d-none d-md-inline">| Glass Cockpit Edition</span>
         </router-link>
-
-        <!-- Menu de Navegação Superior (CDU-01) -->
         <div class="collapse navbar-collapse show" id="navbarNav">
           <ul class="navbar-nav ms-4 gap-2">
             <li class="nav-item">
@@ -40,8 +36,6 @@
             </li>
           </ul>
         </div>
-
-        <!-- Status do Gateway -->
         <div class="d-flex align-items-center gap-3">
           <span class="badge status-badge" :class="health?.status === 'UP' ? 'green' : 'red'">
             Gateway: {{ health?.status || 'OFFLINE' }}

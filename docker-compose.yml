@@ -150,6 +150,7 @@ services:
       PYTHONWARNINGS: ignore::DeprecationWarning
       MQTT_BROKER: ${MQTT_BROKER:-mqtt-broker}
       MQTT_PORT: ${MQTT_PORT:-1883}
+      BACKEND_GATEWAY_URL: http://backend-gateway:8080
     depends_on:
       - mqtt-broker
 
@@ -169,6 +170,7 @@ services:
       BRAKE_MUTEX_REQUEST_TOPIC: avionica.mutex.brakes.request
       BRAKE_MUTEX_GRANT_TOPIC: avionica.mutex.brakes.grant
       BRAKE_MUTEX_RELEASE_TOPIC: avionica.mutex.brakes.release
+      BACKEND_GATEWAY_URL: http://backend-gateway:8080
     depends_on:
       - kafka
       - kafka-topic-init

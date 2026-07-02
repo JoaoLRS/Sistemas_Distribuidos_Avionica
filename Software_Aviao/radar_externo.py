@@ -7,9 +7,30 @@ import paho.mqtt.client as mqtt
 BROKER = os.getenv("MQTT_BROKER", "broker.hivemq.com")
 PORTA = int(os.getenv("MQTT_PORT", "1883"))
 TOPICO_RADAR = "avionica/radar"
+TOPICO_SIMULACAO = "avionica/comandos/simulacao"
+
+simulacao_ativa = False
+
+def ao_conectar(client, userdata, flags, rc):
+    client.subscribe(TOPICO_SIMULACAO)
+
+def ao_receber_mensagem(client, userdata, msg):
+    global simulacao_ativa
+    try:
+        pacote = json.loads(msg.payload.decode("utf-8"))
+        status = pacote.get("status")
+        if status == "START":
+            simulacao_ativa = True
+        elif status == "STOP":
+            simulacao_ativa = False
+    except Exception:
+        pass
 
 def iniciar_radar():
+    global simulacao_ativa
     cliente = mqtt.Client()
+    cliente.on_connect = ao_conectar
+    cliente.on_message = ao_receber_mensagem
     cliente.connect(BROKER, PORTA, 60)
     cliente.loop_start()
 
@@ -17,6 +38,10 @@ def iniciar_radar():
 
     try:
         while True:
+            if not simulacao_ativa:
+                time.sleep(1)
+                continue
+
             clima_atual = random.choices(climas, weights=[50, 30, 20])[0]
             # Se for tempestade, a temperatura cai drasticamente para baixo de zero
             temp = random.randint(-30, -5) if clima_atual == "TEMPESTADE" else random.randint(5, 15)
@@ -35,7 +60,8 @@ def iniciar_radar():
             cliente.publish(TOPICO_RADAR, json.dumps(pacote))
             time.sleep(3) # O radar varre a cada 3 segundos
     except KeyboardInterrupt:
-        pass
+        cliente.loop_stop()
+        cliente.disconnect()
 
 if __name__ == "__main__":
     iniciar_radar()

@@ -9,10 +9,12 @@ from cristian_client import CristianClock
 BROKER = os.getenv("MQTT_BROKER", "broker.hivemq.com")
 PORTA = int(os.getenv("MQTT_PORT", "1883"))
 TOPICO_VOO = "avionica/sensores/voo"
-TOPICO_CMD = "avionica/comandos/velocidade" # NOVO TÓPICO PARA OUVIR COMANDOS
+TOPICO_CMD = "avionica/comandos/velocidade" 
+TOPICO_SIMULACAO = "avionica/comandos/simulacao"
 
 # Variável global para a velocidade real do avião
 velocidade_atual_mach = 0.80
+simulacao_ativa = False
 
 # Função que será chamada após os 3 segundos de inércia
 def aplicar_nova_velocidade(nova_vel):
@@ -23,18 +25,25 @@ def aplicar_nova_velocidade(nova_vel):
 # Callbacks do Middleware
 def ao_conectar(client, userdata, flags, rc):
     print("🛫 Módulo de Voo conectado. A escutar comandos do cockpit...")
-    client.subscribe(TOPICO_CMD) # Começa a escutar os botões do painel
+    client.subscribe([(TOPICO_CMD, 0), (TOPICO_SIMULACAO, 0)]) 
 
 def ao_receber_mensagem(client, userdata, msg):
+    global velocidade_atual_mach, simulacao_ativa
     try:
-        pacote = json.loads(msg.payload.decode())
-        nova_vel = pacote.get("nova_velocidade")
-        
-        if nova_vel is not None:
-            print(f"📥 [COMANDO] Autothrottle ajustado para {nova_vel} Mach. Aguardando 3s de resposta dos motores...")
-            # MAGIA DO SISTEMA DISTRIBUÍDO: Dispara um temporizador de 3 segundos em background (Thread)
-            # Isto permite que o avião continue a mandar dados de combustível enquanto a velocidade não muda!
-            threading.Timer(3.0, aplicar_nova_velocidade, args=[nova_vel]).start()
+        pacote = json.loads(msg.payload.decode("utf-8"))
+        if msg.topic == TOPICO_SIMULACAO:
+            status = pacote.get("status")
+            if status == "START":
+                simulacao_ativa = True
+                print("🏁 [SIMULAÇÃO] Sinal START recebido. Iniciando envio de telemetria.")
+            elif status == "STOP":
+                simulacao_ativa = False
+                print("🛑 [SIMULAÇÃO] Sinal STOP recebido. Pausando envio de telemetria.")
+        elif msg.topic == TOPICO_CMD:
+            nova_vel = pacote.get("nova_velocidade")
+            if nova_vel is not None:
+                print(f"📥 [COMANDO] Autothrottle ajustado para {nova_vel} Mach. Aguardando 3s de resposta dos motores...")
+                threading.Timer(3.0, aplicar_nova_velocidade, args=[nova_vel]).start()
     except Exception as e:
         pass
 
@@ -57,6 +66,10 @@ def iniciar_sensores_voo():
 
     try:
         while True:
+            if not simulacao_ativa:
+                time.sleep(1)
+                continue
+
             combustivel = max(0.0, combustivel - 0.01)
             altitude += random.randint(-50, 50)
             
